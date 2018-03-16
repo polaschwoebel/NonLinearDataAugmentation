@@ -2,7 +2,7 @@ import numpy as np
 
 
 # Produce control points (= grid) for a 2d grayscale image.
-def get_control_points_2d(image, res):
+def get_points_2d(image, res):
     x, y = image.shape
     grid_y, grid_x = np.mgrid[0:y:res, 0:x:res]
     grid = np.array((grid_y.flatten(), grid_x.flatten())).T
@@ -10,7 +10,7 @@ def get_control_points_2d(image, res):
 
 
 # Produce control points (= grid) for a 3d grayscale image.
-def get_control_points_3d(image, res):
+def get_points_3d(image, res):
     y, x, z = image.shape
     grid_y, grid_x, grid_z = np.mgrid[0:x:100, 0:y:100, 0:z:100]
     grid = np.array((grid_y.flatten(), grid_x.flatten(), grid_z.flatten())).T
@@ -37,8 +37,19 @@ def gram_matrix(function, grid):
     return S
 
 
+def evaluation_matrix(function, kernel_grid, points):
+    n, d = kernel_grid.shape
+    m = points.shape[0]
+    S = np.zeros((d*m, d*n))
+    for i in range(m):
+        for j in range(n):
+            for k in range(d):
+                S[d*i+k][d*j+k] = function(points[i], kernel_grid[j])
+    return S
+
+
 def make_random_V(S, d):
-    nxd = S.shape[0]
+    nxd = S.shape[1]
     alpha = (np.random.rand(nxd) - 0.5)*2*10 # artificially large alpha to see the change
     # change to Gaussian?
     lmda = S.dot(alpha)
