@@ -41,7 +41,6 @@ def load_matrix(file_name):
 
 
 def apply_transformation(image, transformation, dim=2, res=2):
-    print('dimension is:', dim)
     if dim == 2:
         grid = vector_fields.get_points_2d(image, res)
         # note: cannot use get points functionality for the dense grid due to the order difference (?)
