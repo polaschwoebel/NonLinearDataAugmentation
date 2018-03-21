@@ -32,7 +32,16 @@ def plot_vectorfield_3d(grid, V, filename):
     plt.savefig('results/%s' % filename)
 
 
-def apply_transformation(image, transformation, dim=2, res=5):
+def save_matrix(matrix, file_name):
+    np.save('evaluation_matrices/%s' % file_name, matrix)
+
+
+def load_matrix(file_name):
+    return np.load('evaluation_matrices/%s' % file_name)
+
+
+def apply_transformation(image, transformation, dim=2, res=2):
+    print('dimension is:', dim)
     if dim == 2:
         grid = vector_fields.get_points_2d(image, res)
         # note: cannot use get points functionality for the dense grid due to the order difference (?)
@@ -46,7 +55,6 @@ def apply_transformation(image, transformation, dim=2, res=5):
         grid_x, grid_y, grid_z = np.mgrid[0:x:1, 0:y:1, 0:z:1]
         full_grid = np.array((grid_y.flatten(), grid_x.flatten()), grid_z.flatten()).T
     grid_dense = forward_euler.interpolate_n_d(grid, transformation, full_grid).astype('float32')
-    print(grid_dense.shape)
     warped = cv2.remap(image, grid_dense[:,0].reshape(image.shape),
                        grid_dense[:,1].reshape(image.shape), interpolation=cv2.INTER_CUBIC)
     return warped
