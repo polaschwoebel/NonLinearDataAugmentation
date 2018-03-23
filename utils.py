@@ -32,6 +32,13 @@ def plot_vectorfield_3d(grid, V, filename):
     plt.savefig('results/%s' % filename)
 
 
+def enforce_boundaries(coords, img_shape_0, img_shape_1):
+    # make sure we are inside the image
+    coords[:, 1] = coords[:, 1].clip(0, img_shape_0)
+    coords[:, 0] = coords[:, 0].clip(0, img_shape_1)
+    return coords
+
+
 def save_matrix(matrix, file_name):
     np.save('evaluation_matrices/%s' % file_name, matrix)
 
@@ -54,6 +61,8 @@ def apply_transformation(image, transformation, dim=2, res=2):
         grid_x, grid_y, grid_z = np.mgrid[0:x:1, 0:y:1, 0:z:1]
         full_grid = np.array((grid_y.flatten(), grid_x.flatten()), grid_z.flatten()).T
     grid_dense = forward_euler.interpolate_n_d(grid, transformation, full_grid).astype('float32')
+    # NOTE: here we are technically applying the INVERSE of the transform!
+    # (see docs or https://stackoverflow.com/questions/46520123/failing-the-simplest-possible-cv2-remap-test-aka-how-do-i-use-remap-in-pyt)
     warped = cv2.remap(image, grid_dense[:,0].reshape(image.shape),
-                       grid_dense[:,1].reshape(image.shape), interpolation=cv2.INTER_CUBIC)
+                       grid_dense[:,1].reshape(image.shape), interpolation=cv2.INTER_NEAREST)
     return warped

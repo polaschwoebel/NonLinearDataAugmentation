@@ -55,6 +55,13 @@ def make_random_V(S, d):
     return lmda.reshape(-1, d)
 
 
+def enforce_boundaries(V, img_shape):
+    # make sure we are inside the image
+    V[:, 1] = V[:, 1].clip(0, img_shape[0])
+    V[:, 0] = V[:, 0].clip(0, img_shape[1])
+    return V
+
+
 ####################### WIP - might not be used in the end
 def evaluation_matrix_efficient(function, kernel_grid, points, c_sup, kernel_res=100, points_res=2): # kernel_res
     #kernel_res = kernel_grid[1][0]
