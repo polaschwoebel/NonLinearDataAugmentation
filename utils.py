@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import vector_fields
 import forward_euler
+import utils
 
 
 def plot_grid_2d(grid, filename):
@@ -32,10 +33,13 @@ def plot_vectorfield_3d(grid, V, filename):
     plt.savefig('results/%s' % filename)
 
 
-def enforce_boundaries(coords, img_shape_0, img_shape_1):
+def enforce_boundaries(coords, img_shape):
     # make sure we are inside the image
-    coords[:, 1] = coords[:, 1].clip(0, img_shape_0)
-    coords[:, 0] = coords[:, 0].clip(0, img_shape_1)
+    coords[:, 1] = coords[:, 1].clip(0, img_shape[1])
+    coords[:, 0] = coords[:, 0].clip(0, img_shape[0])
+    # 3d case
+    if len(img_shape) == 3:
+        coords[:, 2] = coords[:, 2].clip(0, img_shape[2])
     return coords
 
 
@@ -47,22 +51,56 @@ def load_matrix(file_name):
     return np.load('evaluation_matrices/%s' % file_name)
 
 
+def reconstruct_dimensions(image, res):
+    d = len(image.shape)
+    new_shape = []
+    for dim in range(d):
+        if image.shape[dim] % res == 0:
+            new_shape.append(image.shape[dim]//res)
+        else:
+            new_shape.append(image.shape[dim]//res + 1)
+    return new_shape
+
+
 def apply_transformation(image, transformation, dim=2, res=2):
     if dim == 2:
         grid = vector_fields.get_points_2d(image, res)
-        # note: cannot use get points functionality for the dense grid due to the order difference (?)
-        x, y = image.shape
-        grid_x, grid_y = np.mgrid[0:x:1, 0:y:1]
-        full_grid = np.array((grid_y.flatten(), grid_x.flatten())).T
+        full_grid = vector_fields.get_points_2d(image, 1)
+        grid_dense = forward_euler.interpolate_n_d(grid, transformation, full_grid).astype('float32')
+        warped = cv2.remap(image, grid_dense[:, 0].reshape(image.shape, order='F'),
+                           grid_dense[:, 1].reshape(image.shape, order='F'),
+                           interpolation=cv2.INTER_NEAREST)
     if dim == 3:
-        grid = vector_fields.get_points_3d(image, res)
-        # note: cannot use get points functionality for the dense grid due to the order difference (?)
-        x, y, z = image.shape
-        grid_x, grid_y, grid_z = np.mgrid[0:x:1, 0:y:1, 0:z:1]
-        full_grid = np.array((grid_y.flatten(), grid_x.flatten()), grid_z.flatten()).T
-    grid_dense = forward_euler.interpolate_n_d(grid, transformation, full_grid).astype('float32')
-    # NOTE: here we are technically applying the INVERSE of the transform!
-    # (see docs or https://stackoverflow.com/questions/46520123/failing-the-simplest-possible-cv2-remap-test-aka-how-do-i-use-remap-in-pyt)
-    warped = cv2.remap(image, grid_dense[:,0].reshape(image.shape),
-                       grid_dense[:,1].reshape(image.shape), interpolation=cv2.INTER_NEAREST)
+        print('Not implemented for 3d, use registration.apply_and_evaluate_transformation() instead.')
+        return
     return warped
+
+
+def apply_and_evaluate_transformation_visual(img_source, img_target, points,
+                                             trafo, res, debug=False):
+    # 'nearest neighbor interpolating' trafo to get integer indices
+    trafo = np.rint(trafo).astype(int)
+    dim = len(img_source.shape)
+    new_shape = utils.reconstruct_dimensions(img_source, res)
+    # analogously to the cv2 function we are actually applying the INVERSE transform,
+    # but this is confusing. change?
+    if dim == 2:
+        source_points = img_source[trafo[:, 1], trafo[:, 0]].reshape(
+                    new_shape[0], new_shape[1], order='F')
+        target_points = img_target[points[:, 1], points[:, 0]].reshape(
+                   new_shape[0], new_shape[1], order='F')
+        if debug:
+            return (source_points, np.linalg.norm(source_points-target_points, 'fro')**2,
+                    (source_points-target_points) != 0)
+        else:
+            return np.linalg.norm(source_points-target_points, 'fro')**2
+
+    if dim == 3:
+        source_points = img_source[trafo[:, 1], trafo[:, 0], trafo[:, 2]].reshape(
+                    new_shape[0], new_shape[1], new_shape[2], order='F')
+        target_points = img_target[points[:, 1], points[:, 0], points[:, 2]].reshape(
+                       new_shape[0], new_shape[1], new_shape[2], order='F')
+        if debug:
+            return source_points, sum(sum(sum((source_points-target_points)**2))), (source_points-target_points)!=0
+        else:
+            return sum(sum(sum(source_points-target_points**2)))

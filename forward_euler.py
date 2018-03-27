@@ -18,8 +18,13 @@ def integrate(x_0, V_0, steps):
     for _ in range(steps):
         # make a step
         x_i = x_i + V_i#/steps # artificially large alpha to see the change: remove /steps
-        # handle boundary conditions
-        x_i = utils.enforce_boundaries(x_i, max(x_0[:,1]), max(x_0[:,0]))
         # interpolate
         V_i = interpolate_n_d(x_0, V_0, x_i)
+
+    # handle boundary conditions - I think it's ok to do this only once in the end
+    dim = x_0.shape[1]
+    img_shape = []
+    for d in range(dim):
+        img_shape.append(max(x_0[:, d]))
+    x_i = utils.enforce_boundaries(x_i, img_shape)
     return x_i
