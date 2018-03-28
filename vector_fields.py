@@ -53,10 +53,14 @@ def evaluation_matrix(function, kernel_grid, points):
 def make_random_V(S, d):
     nxd = S.shape[1]
     alpha = (np.random.rand(nxd) - 0.5)*2*10  # artificially large alpha to see the change
-    # change to Gaussian?
+    # Change to Gaussian? In the real HMCS we will start with zeros
     lmda = S.dot(alpha)
     return lmda.reshape(-1, d)
 
+
+def make_V(S, alpha, d):
+    lmda = S.dot(alpha)
+    return lmda.reshape(-1, d)
 
 
 ####################### WIP - might not be used in the end
