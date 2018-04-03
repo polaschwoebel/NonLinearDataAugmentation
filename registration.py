@@ -21,7 +21,7 @@ def apply_and_evaluate_transformation(img_source, img_target, points,
     return np.linalg.norm(source_points-target_points)**2
 
 
-def likelihood(im1, im2, trafo, evaluation_points, sigma=1):
+def loglikelihood(im1, im2, trafo, evaluation_points, sigma=1):
     error = apply_and_evaluate_transformation(im1, im2, evaluation_points,
                                               trafo, res=2)
     print(-error/(2*sigma**2), )
@@ -29,7 +29,7 @@ def likelihood(im1, im2, trafo, evaluation_points, sigma=1):
     return log_likelihood
 
 
-def prior(S, alpha, img_shape, kernel_res, eval_res, sigma=1):
+def logprior(S, alpha, img_shape, kernel_res, eval_res, sigma=1):
     # find indices to recover gram matrix from large evaluation matrix
     d = 3
     resratio = kernel_res//eval_res
@@ -46,11 +46,15 @@ def prior(S, alpha, img_shape, kernel_res, eval_res, sigma=1):
     indices = np.zeros(S.shape[0])
     indices[keep] = 1
     indices = indices.astype(bool)
-    S = S[indices, :]
+    G = S[indices, :]
     # actual computation of the prior
     norm = alpha.T.dot(S.dot(alpha))
     log_likelihood = -norm/(2*sigma**2) + math.log(1/(sigma*math.sqrt(2*math.pi)))
-    return log_likelihood, S
+    return log_likelihood, G
+
+
+def logprior_gradient(G, alpha, sigma):
+    return -1/(2*sigma**2) * (2*np.dot(G, alpha))
 
 
 # final registration function for 3d
@@ -81,9 +85,9 @@ def find_transformation(im1, im2):
     print('Compute transformation.')
     trafo = forward_euler.integrate(evaluation_points, V, 10)
     print('Compute likelihood.')
-    log_likelihood = likelihood(im1, im2, trafo, evaluation_points)
+    log_likelihood = loglikelihood(im1, im2, trafo, evaluation_points)
     print('log_likelihood:', log_likelihood, '. Now compute prior.')
-    log_prior = prior(S, alpha, im1.shape, kernel_res, eval_res)
+    log_prior = logprior(S, alpha, im1.shape, kernel_res, eval_res)
     print('log_prior:', log_prior, 'Done.')
     log_posterior = log_likelihood + log_prior
 

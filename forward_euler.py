@@ -17,7 +17,7 @@ def integrate(x_0, V_0, steps):
     x_i = x_0
     for _ in range(steps):
         # make a step
-        x_i = x_i + V_i#/steps # artificially large alpha to see the change: remove /steps
+        x_i = x_i + V_i/steps #/steps # artificially large alpha to see the change: remove /steps
         # interpolate
         V_i = interpolate_n_d(x_0, V_0, x_i)
 

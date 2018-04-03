@@ -11,7 +11,7 @@ import utils
 
 # An example workflow.
 def main():
-    example = io.imread('kanelsnurrer.jpg')
+    example = io.imread('brain.png')
     example_2d = color.rgb2gray(example)
     example_3d_mockup = np.repeat(example, 200, 2)
 
@@ -52,25 +52,25 @@ def main():
     # Compute and plot vector fields
     d = 2
     V_2d = vector_fields.make_random_V(S2d, d)
-    V_3d = vector_fields.make_random_V(S3d, 3)
+    #V_3d = vector_fields.make_random_V(S3d, 3)
 
     utils.plot_vectorfield_2d(evaluation_points_2d, V_2d, 'vectorfield_2d.png') # this is too many points at this point - fix!
-    utils.plot_vectorfield_3d(evaluation_points_3d, V_3d, 'vectorfield_3d.png')
+    #utils.plot_vectorfield_3d(evaluation_points_3d, V_3d, 'vectorfield_3d.png')
 
     x_10_2d = forward_euler.integrate(evaluation_points_2d, V_2d, 10)
-    x_10_3d = forward_euler.integrate(evaluation_points_3d, V_3d, 10)
+    #x_10_3d = forward_euler.integrate(evaluation_points_3d, V_3d, 10)
 
     utils.plot_grid_2d(x_10_2d, 'transformation_2d.png')
-    utils.plot_grid_3d(x_10_3d, 'transformation_3d.png')
+    #utils.plot_grid_3d(x_10_3d, 'transformation_3d.png')
 
     warped_2d, error_2d, _ = utils.apply_and_evaluate_transformation_visual(example_2d, example_2d, evaluation_points_2d,
                                                                             x_10_2d, 2, debug=True)
     cv2.imwrite('results/warped_2d.png', warped_2d*255)
     print('2d done. Error is %s.' % error_2d)
 
-    error_3d = registration.apply_and_evaluate_transformation(example_3d_mockup, example_3d_mockup, evaluation_points_3d,
-                                                              x_10_3d, 2)
-    print('3d done. Error is %s.' % error_3d)
+    #error_3d = registration.apply_and_evaluate_transformation(example_3d_mockup, example_3d_mockup, evaluation_points_3d,
+    #                                                          x_10_3d, 2)
+    #print('3d done. Error is %s.' % error_3d)
 
 if __name__ == main():
     main()
