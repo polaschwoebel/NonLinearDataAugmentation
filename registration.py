@@ -48,13 +48,13 @@ def logprior(S, alpha, img_shape, kernel_res, eval_res, sigma=1):
     indices = indices.astype(bool)
     G = S[indices, :]
     # actual computation of the prior
-    norm = alpha.T.dot(S.dot(alpha))
+    norm = alpha.T.dot(G.dot(alpha))
     log_likelihood = -norm/(2*sigma**2) + math.log(1/(sigma*math.sqrt(2*math.pi)))
     return log_likelihood, G
 
 
-def logprior_gradient(G, alpha, sigma):
-    return -1/(2*sigma**2) * (2*np.dot(G, alpha))
+def logprior_gradient(G, alpha, sigma=1):
+    return -1/(2*sigma**2) * (2*G.dot(alpha))
 
 
 # final registration function for 3d
@@ -87,10 +87,13 @@ def find_transformation(im1, im2):
     print('Compute likelihood.')
     log_likelihood = loglikelihood(im1, im2, trafo, evaluation_points)
     print('log_likelihood:', log_likelihood, '. Now compute prior.')
-    log_prior = logprior(S, alpha, im1.shape, kernel_res, eval_res)
+    log_prior, G = logprior(S, alpha, im1.shape, kernel_res, eval_res)
     print('log_prior:', log_prior, 'Done.')
     log_posterior = log_likelihood + log_prior
 
+    print('Compute prior gradient for test')
+    logp_g = logprior_gradient(G, alpha)
+    print('Done. logpr shape:', logp_g.shape, logp_g)
     # TODO:
     # -compute gradient of the last line w.r.t. alpha
     # -sample new trafo

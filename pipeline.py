@@ -29,24 +29,24 @@ def main():
 
     # Compute Gram/Evaluation matrix 2d
     c_sup = 200
-    if os.path.exists('evaluation_matrices/example2D_100_200_2.npy'):
+    if os.path.exists('evaluation_matrices/example2D_100_200_2.npz'):
         print('Loading evaluation matrix 2d')
-        S2d = utils.load_matrix('example2D_100_200_2.npy')
+        S2d = utils.load_matrix('example2D_100_200_2.npz')
     else:
         print('Computing evaluation matrix 2d')
         S2d = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), kernel_grid_2d,
                                               evaluation_points_2d)
-    utils.save_matrix(S2d, 'example2D_100_200_2.npy')
+        utils.save_matrix(S2d, 'example2D_100_200_2.npz')
     print('2d Done.')
     # Compute Gram/Evaluation matrix 3d
-    if os.path.exists('evaluation_matrices/example3D_100_200_100.npy'):
+    if os.path.exists('evaluation_matrices/example3D_100_200_100.npz'):
         print('Loading evaluation matrix 3d')
-        S3d = utils.load_matrix('example3D_100_200_100.npy')
+        S3d = utils.load_matrix('example3D_100_200_100.npz')
     else:
         print('Computing evaluation matrix 3d')
         S3d = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), kernel_grid_3d,
                                               evaluation_points_3d)
-    utils.save_matrix(S3d, 'example3D_100_200_100.npy')
+        utils.save_matrix(S3d, 'example3D_100_200_100.npz')
     print('3d Done.')
 
     # Compute and plot vector fields

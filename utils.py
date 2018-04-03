@@ -5,6 +5,7 @@ import numpy as np
 import vector_fields
 import forward_euler
 import utils
+from scipy import sparse
 
 
 def plot_grid_2d(grid, filename):
@@ -44,11 +45,11 @@ def enforce_boundaries(coords, img_shape):
 
 
 def save_matrix(matrix, file_name):
-    np.save('evaluation_matrices/%s' % file_name, matrix)
+    sparse.save_npz('evaluation_matrices/%s' % file_name, matrix)
 
 
 def load_matrix(file_name):
-    return np.load('evaluation_matrices/%s' % file_name)
+    return sparse.load_npz('evaluation_matrices/%s' % file_name)
 
 
 def reconstruct_dimensions(image, res):

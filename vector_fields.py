@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+from scipy import sparse
 
 # Produce control points (= grid) for a 2d grayscale image.
 def get_points_2d(image, res):
@@ -36,7 +37,7 @@ def gram_matrix(function, grid):
             for k in range(d):
                 S[d*i+k][d*j+k] = function(grid[i], grid[j])
                 S[d*j+k][d*i+k] = S[d*i+k][d*j+k]
-    return S
+    return sparse.csc_matrix(S)
 
 
 def evaluation_matrix(function, kernel_grid, points):
@@ -47,7 +48,7 @@ def evaluation_matrix(function, kernel_grid, points):
         for j in range(n):
             for k in range(d):
                 S[d*i+k][d*j+k] = function(points[i], kernel_grid[j])
-    return S
+    return sparse.csc_matrix(S)
 
 
 def make_random_V(S, d):
