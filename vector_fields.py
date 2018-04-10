@@ -52,13 +52,12 @@ def evaluation_matrix(function, kernels, points, c_sup=200):
     m, n = S.shape
     unique = vect_kernel(S[:, 0])
     value_lookup = {dst: val for dst, val in zip(S[:,0], unique)}
-    S[np.where(S == 1)] = 2
-    inserted = []
     for d, val in value_lookup.items():
-        if d < 1 and d not in inserted:
-            S[np.where(S == d)] = val
-            inserted.append(d)
-    S[S>1] =0
+        if d <= 1:
+            # use minus sign to 'mark' already done entries
+            S[np.where(S == d)] = - val
+    S[S>1] = 0
+    S = -S
     full_S = np.block([[np.eye(3)*S[i, j] for j in range(n)] for i in range(m)])
     return sparse.csc_matrix(full_S)
 
