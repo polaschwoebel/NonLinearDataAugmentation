@@ -63,6 +63,27 @@ def reconstruct_dimensions(image, res):
     return new_shape
 
 
+ # recover gram matrix G from large evaluation matrix S by slicing
+def get_G_from_S(S, kernel_res, eval_res, img_shape):
+    d = 3
+    resratio = kernel_res//eval_res
+    eval_x_dim = img_shape[0]//eval_res + 1
+    eval_y_dim = img_shape[1]//eval_res + 1
+    eval_z_dim = img_shape[2]//eval_res + 1
+    lowresrows = np.array([range(d*i*eval_y_dim*eval_x_dim, d*(i+1)*eval_y_dim*eval_x_dim)
+                          for i in range(0, eval_z_dim, resratio)]).flatten()
+    midresrows = np.array([range(d*i*eval_x_dim, d*(i+1)*eval_x_dim)
+                          for i in range(0, eval_z_dim*eval_y_dim, resratio)]).flatten()
+    highresrows = np.array([range(d*i, d*(i+1))
+                           for i in range(0, eval_x_dim*eval_z_dim*eval_y_dim, resratio)]).flatten()
+    keep = list(set(lowresrows) & set(midresrows) & set(highresrows))
+    indices = np.zeros(S.shape[0])
+    indices[keep] = 1
+    indices = indices.astype(bool)
+    G = S[indices, :]
+    return G
+
+
 def apply_transformation(image, transformation, dim=2, res=2):
     if dim == 2:
         grid = vector_fields.get_points_2d(image, res)

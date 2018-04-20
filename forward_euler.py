@@ -34,6 +34,7 @@ def integrate(x_0, kernels, alpha, S, steps=10):
     img_shape = []
     for d in range(dim):
         img_shape.append(max(x_0[:, d]))
-    x_i = utils.enforce_boundaries(x_i, img_shape)
+    x_1 = utils.enforce_boundaries(x_i, img_shape)
+    du_dalpha_1 = du_dalpha_i
 
-    return x_i, du_dalpha_i
+    return x_1, du_dalpha_1

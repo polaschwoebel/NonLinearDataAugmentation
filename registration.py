@@ -3,11 +3,9 @@ import vector_fields
 import forward_euler
 import utils
 import os
-import math
 
 
-def apply_and_evaluate_transformation(img_source, img_target, points,
-                                      trafo, res, debug=False):
+def E_D(img_source, img_target, points, trafo, res, debug=False):
     # 'nearest neighbor interpolating' trafo to get integer indices
     trafo = np.rint(trafo).astype(int)
     dim = len(img_source.shape)
@@ -21,40 +19,11 @@ def apply_and_evaluate_transformation(img_source, img_target, points,
     return np.linalg.norm(source_points-target_points)**2
 
 
-def loglikelihood(im1, im2, trafo, evaluation_points, sigma=1):
-    error = apply_and_evaluate_transformation(im1, im2, evaluation_points,
-                                              trafo, res=2)
-    print(-error/(2*sigma**2), )
-    log_likelihood = -error/(2*sigma**2) + math.log(1/(sigma*math.sqrt(2*math.pi)))
-    return log_likelihood
-
-
-def logprior(S, alpha, img_shape, kernel_res, eval_res, sigma=1):
-    # find indices to recover gram matrix from large evaluation matrix
-    d = 3
-    resratio = kernel_res//eval_res
-    eval_x_dim = img_shape[0]//eval_res + 1
-    eval_y_dim = img_shape[1]//eval_res + 1
-    eval_z_dim = img_shape[2]//eval_res + 1
-    lowresrows = np.array([range(d*i*eval_y_dim*eval_x_dim, d*(i+1)*eval_y_dim*eval_x_dim)
-                          for i in range(0, eval_z_dim, resratio)]).flatten()
-    midresrows = np.array([range(d*i*eval_x_dim, d*(i+1)*eval_x_dim)
-                          for i in range(0, eval_z_dim*eval_y_dim, resratio)]).flatten()
-    highresrows = np.array([range(d*i, d*(i+1))
-                           for i in range(0, eval_x_dim*eval_z_dim*eval_y_dim, resratio)]).flatten()
-    keep = list(set(lowresrows) & set(midresrows) & set(highresrows))
-    indices = np.zeros(S.shape[0])
-    indices[keep] = 1
-    indices = indices.astype(bool)
-    G = S[indices, :]
-    # actual computation of the prior
-    norm = alpha.T.dot(G.dot(alpha))
-    log_likelihood = -norm/(2*sigma**2) + math.log(1/(sigma*math.sqrt(2*math.pi)))
-    return log_likelihood, G
-
-
-def logprior_gradient(G, alpha, sigma=1):
-    return -1/(2*sigma**2) * (2*G.dot(alpha))
+def E_R(S, alpha, img_shape, kernel_res, eval_res, sigma=1):
+    G = utils.get_G_from_S(S, kernel_res, eval_res, img_shape)
+    reg_norm = alpha.T.dot(G.dot(alpha))
+    #log_likelihood = -norm/(2*sigma**2) + math.log(1/(sigma*math.sqrt(2*math.pi)))
+    return reg_norm
 
 
 # final registration function for 3d
@@ -68,11 +37,12 @@ def find_transformation(im1, im2):
     kernel_grid = vector_fields.get_points_3d(im1, kernel_res)
     evaluation_points = vector_fields.get_points_3d(im1, eval_res)
 
+    # S can be loaded if pre-computed, otherwise compute here
     if os.path.exists('evaluation_matrices/example3D_100_200_50.npy'):
         print('Loading evaluation matrix.')
         S = utils.load_matrix('example3D_100_200_50.npy')
     else:
-        print('Computing S.') # kernel matrix can alternatively be loaded if pre-computed
+        print('Computing S.')
         S = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), kernel_grid,
                                             evaluation_points)
         utils.save_matrix(S, 'example3D_100_200_2.npy')
@@ -83,19 +53,17 @@ def find_transformation(im1, im2):
     alpha = np.zeros(nxd)
     V = vector_fields.make_V(S, alpha, 3)
     print('Compute transformation.')
-    trafo = forward_euler.integrate(evaluation_points, V, 10)
+    phi_1, du_dalpha_1 = forward_euler.integrate(evaluation_points, V, 10)
     print('Compute likelihood.')
-    log_likelihood = loglikelihood(im1, im2, trafo, evaluation_points)
-    print('log_likelihood:', log_likelihood, '. Now compute prior.')
-    log_prior, G = logprior(S, alpha, im1.shape, kernel_res, eval_res)
-    print('log_prior:', log_prior, 'Done.')
-    log_posterior = log_likelihood + log_prior
+    E_Data = E_D(im1, im2, phi_1, evaluation_points)
+    print('E_D:', E_D, '. Now compute prior.')
+    E_Reg = E_R(S, alpha, im1.shape, kernel_res, eval_res)
+    print('E_R:', E_R, 'Done.')
+    E = E_Data + E_Reg
 
-    print('Compute prior gradient for test')
-    logp_g = logprior_gradient(G, alpha)
-    print('Done. logpr shape:', logp_g.shape, logp_g)
+
     # TODO:
-    # -compute gradient of the last line w.r.t. alpha
+    # -compute gradient w.r.t. alpha
     # -sample new trafo
     # - return alpha/trafo after some threshold is passed (iterations/error small?)
-    return alpha, log_posterior
+    return alpha, E
