@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import cv2
 import numpy as np
