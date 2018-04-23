@@ -1,0 +1,6 @@
+#!/bin/bash
+
+UPLOAD_FILE="$1"
+LOCATION="$2"
+
+scp -r $UPLOAD_FILE bzn267@ssh-diku-image.science.ku.dk:/home/bzn267/$LOCATION

@@ -71,5 +71,6 @@ def make_random_V(S, d):
 
 
 def make_V(S, alpha, d):
+    alpha = alpha.flatten()
     lmda = S.dot(alpha)
     return lmda.reshape(-1, d)

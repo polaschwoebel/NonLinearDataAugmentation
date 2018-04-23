@@ -26,7 +26,7 @@ def integrate(x_0, kernels, alpha, S, steps=10):
 
         # gradient computations
         dv_dphit_i = gradient.dv_dphit(x_i, kernels, alpha, c_sup=200)
-        du_dalpha_i = gradient.next_du_dalpha(S, dv_dphit_i, du_dalpha_i, steps)
+        du_dalpha_i = gradient.next_dphi_dalpha(S, dv_dphit_i, du_dalpha_i, steps)
 
     # handle boundary conditions - I think it's ok to do this only once in the end
     # still now with gradient?

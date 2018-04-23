@@ -5,6 +5,7 @@ import utils
 
 
 def dv_dphit(phi_t, kernels, alpha, c_sup=200):
+    alpha = alpha.reshape((-1,3))
     distances = euclidean_distances(phi_t, kernels)/c_sup
     # m/3 is number of points, n/3 number of kernels
     m, n = distances.shape
@@ -44,18 +45,21 @@ def dIm_dphi(img, phi, res):
 
 
 def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1): #dEd_du in the paper
+    phi_1 = np.rint(phi_1).astype(int)
     source_points = im1[phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
     target_points = im2[points[:, 1], points[:, 0], points[:, 2]]
-    return 2 * dIm1_dphi1.dot(source_points-target_points)
+    dim3_error = np.repeat(source_points-target_points, 3)
+    return sparse.csc_matrix(2 * dIm1_dphi1.dot(dim3_error))
 
 
 # remember that this is G not S!!
 def dER_dalpha(G, alpha):
-    alpha = alpha.flatten()
+    #alpha = alpha.flatten()
     return sparse.csc_matrix(2*G.dot(alpha))
 
 
 # final gradient
 def error_gradient(dED_dphit1, dphi_dalpha, dER_dalpha):
-    print(dED_dphit1.shape, dphi_dalpha.shape, dER_dalpha.shape)
+
+
     return dED_dphit1.dot(dphi_dalpha) + dER_dalpha
