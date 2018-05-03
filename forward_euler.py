@@ -1,10 +1,10 @@
-from scipy import interpolate
+from scipy import ndimage, interpolate
 import numpy as np
 import utils
 import gradient
 import vector_fields
 
-# TODO: proper 3d-interpolation
+# WILL BE REPLACED ONCE CHANGED BELOW
 # wrapper for scipy interpolation so that it can handle the d-dimensional vectorfields (d=2 or d=3)
 def interpolate_n_d(x_0, V_0, x_i):
     n, d = x_i.shape
@@ -23,7 +23,7 @@ def integrate(x_0, kernels, alpha, S, steps=10, compute_gradient=True):
         print('Computing step', _)
         # make a step
         x_i = x_i + V_i/steps
-        # interpolate
+        # interpolate - TODO: V will be recomputed instead
         V_i = interpolate_n_d(x_0, V_i, x_i)
         # TODO: recompute V_i instead using the kernel framework
         print('Computing done. Now gradient, if desired.')

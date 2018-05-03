@@ -1,4 +1,4 @@
-from scipy import sparse
+from scipy import sparse, ndimage
 import numpy as np
 
 
@@ -23,13 +23,22 @@ def load_matrix(file_name):
 def reconstruct_dimensions(image, res):
     d = len(image.shape)
     new_shape = []
-    print(image.shape, res)
     for dim in range(d):
         if image.shape[dim] % res == 0:
             new_shape.append(image.shape[dim]//res)
         else:
             new_shape.append(image.shape[dim]//res + 1)
     return new_shape
+
+
+def interpolate_image(image, phi_1, res):
+    dim = phi_1.shape[-1]
+    if dim == 2:
+        coords = [phi_1[:, 1], phi_1[:, 0]]
+    if dim == 3:
+        coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
+    interpolated = ndimage.map_coordinates(image, coords)
+    return interpolated
 
 
 # recover gram matrix G from large evaluation matrix S by slicing

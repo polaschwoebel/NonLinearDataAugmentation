@@ -8,26 +8,20 @@ from scipy import optimize
 
 def apply_transformation(img_source, points, trafo, res, return_image=False):
     dim = len(img_source.shape)
-
-    # TODO: Interpolate images at trafo positions instead of rounding here!
-    trafo = np.rint(trafo).astype(int)
-
-    if dim == 2:
-        transformed_source_points = img_source[trafo[:, 1], trafo[:, 0]]
-
-    if dim == 3:
-        transformed_source_points = img_source[trafo[:, 1], trafo[:, 0], trafo[:, 2]]
+    transformed_source_points = utils.interpolate_image(img_source, trafo, res)
 
     # bring points back into image shape - only for visualization
     if return_image:
-        new_shape = utils.reconstruct_dimensions(img_source, res)
-        print('shape:', new_shape)
-        if dim == 2:
-            transformed_source_image = transformed_source_points.reshape(
-                new_shape[0], new_shape[1], order='F')
-        if dim == 3:
-            transformed_source_image = transformed_source_points.reshape(
-                    new_shape[0], new_shape[1], new_shape[2], order='F')
+        new_shape = utils.reconstruct_dimensions(img_source, 50)
+        print('new_shape:', new_shape)
+        #if dim == 2:
+        #    transformed_source_image = transformed_source_points.reshape(
+        #        new_shape[0], new_shape[1], order='F')
+        #if dim == 3:
+        #    transformed_source_image = transformed_source_points.reshape(
+        #            new_shape[0], new_shape[1], new_shape[2], order='F')
+        #return transformed_source_image
+        transformed_source_image = transformed_source_points.reshape(new_shape, order='F')
         return transformed_source_image
 
     else:

@@ -47,19 +47,19 @@ def dIm_dphi(img, phi, res):
     phi = np.rint(phi).astype(int)
     img_lowres = img[[phi[:, 1], phi[:, 0], phi[:,2]]].reshape(
                        new_shape[0], new_shape[1], new_shape[2], order='F')
+    img_lowres = utils.interpolate_image(img, phi, res).reshape(new_shape, order='F')
+
     gradients_3dims = np.gradient(img_lowres)
     gradient_3d_array = np.dstack([dim_arr.flatten() for dim_arr in gradients_3dims])
     gradient_diagonal = gradient_3d_array.flatten()
     return sparse.diags(gradient_diagonal)
 
 
-def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1): #dEd_du in the paper
-    # TODO: interpolate instead of round
-    phi_1 = np.rint(phi_1).astype(int)
-    source_points = im1[phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
+def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1, res=50): #dEd_du in the paper
+    source_points = utils.interpolate_image(im1, phi_1, res)
     target_points = im2[points[:, 1], points[:, 0], points[:, 2]]
-    dim3_error = np.repeat(source_points-target_points, dim)
-    return sparse.csc_matrix(2 * dIm1_dphi1.dot(dim3_error))
+    full_dim_error = np.repeat(source_points-target_points, dim)
+    return sparse.csc_matrix(2 * dIm1_dphi1.dot(full_dim_error))
 
 
 # remember that this is G not S!
