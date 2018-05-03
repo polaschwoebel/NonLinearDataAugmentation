@@ -1,4 +1,4 @@
-from scipy import ndimage, interpolate
+from scipy import interpolate
 import numpy as np
 import utils
 import gradient
@@ -14,18 +14,20 @@ def interpolate_n_d(x_0, V_0, x_i):
     return V_i
 
 
-def integrate(x_0, kernels, alpha, S, steps=10, compute_gradient=True):
+def integrate(x_0, kernels, alpha, S, steps=10, compute_gradient=True, c_sup=200):
     dim = x_0.shape[1]
     V_i = vector_fields.make_V(S, alpha.reshape((alpha.size, -1)), dim)
     x_i = x_0
+    print(x_i.shape, V_i.shape)
     du_dalpha_i = S
     for _ in range(steps):
         print('Computing step', _)
         # make a step
         x_i = x_i + V_i/steps
-        # interpolate - TODO: V will be recomputed instead
-        V_i = interpolate_n_d(x_0, V_i, x_i)
-        # TODO: recompute V_i instead using the kernel framework
+        # Note: first S_i computation could be avoided since S_i is passed
+        S_i = vector_fields.evaluation_matrix(lambda x1, x2:
+                                              vector_fields.kernel(x1, x2, c_sup), kernels, x_i)
+        V_i = vector_fields.make_V(S_i, alpha.reshape((alpha.size, -1)), dim)
         print('Computing done. Now gradient, if desired.')
         if compute_gradient:
             # gradient computations

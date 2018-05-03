@@ -6,13 +6,13 @@ import gradient
 from scipy import optimize
 
 
-def apply_transformation(img_source, points, trafo, res, return_image=False):
+def apply_transformation(img_source, points, trafo, points_res, kernel_res=50, return_image=False):
     dim = len(img_source.shape)
-    transformed_source_points = utils.interpolate_image(img_source, trafo, res)
+    transformed_source_points = utils.interpolate_image(img_source, trafo, points_res)
 
     # bring points back into image shape - only for visualization
     if return_image:
-        new_shape = utils.reconstruct_dimensions(img_source, 50)
+        new_shape = utils.reconstruct_dimensions(img_source, points_res)
         print('new_shape:', new_shape)
         #if dim == 2:
         #    transformed_source_image = transformed_source_points.reshape(
@@ -40,30 +40,33 @@ def E_D(img_source, img_target, points, trafo, debug=False):
     return np.linalg.norm(source_points-target_points)**2
 
 
-def E_R(S, alpha, img_shape, kernel_res, eval_res, sigma=1):
-    G = utils.get_G_from_S(S, kernel_res, eval_res, img_shape)
+def E_R(G, alpha, sigma=1):
+    print('alpha:', alpha.shape, 'G:', G.shape)
     reg_norm = alpha.T.dot(G.dot(alpha))
     weight = 0.05 # Akshay's suggestion
     return weight * reg_norm
 
 
-def compute_error_and_gradient(im1, im2, points, kernels, alpha, S, kernel_res=100, eval_res=50, c_sup=200):
+def compute_error_and_gradient(im1, im2, points, kernels, alpha, S, kernel_res=100, eval_res=50, c_sup=200, dim=3):
         print('Compute transformation.')
         phi_1, dphi_dalpha_1 = forward_euler.integrate(points, kernels, alpha, S, steps=10)
         #phi_1 = np.rint(phi_1).astype(int)
 
+        # recompute G
+        #G = utils.get_G_from_S(S, kernel_res, eval_res, im1.shape)
+        G = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), kernels,
+                                            kernels, dim=dim, c_sup=c_sup)
+
         print('Compute Error.')
         E_Data = E_D(im1, im2, points, phi_1)
         print('Data term:', E_Data)
-        E_Reg = E_R(S, alpha, im1.shape, kernel_res, eval_res)
+        E_Reg = E_R(G, alpha)
         print('Regularization term:', E_Reg, 'Done.')
         E = E_Data + E_Reg
 
         # data term error gradient
-        dIm_dphi1 = gradient.dIm_dphi(im1, phi_1, 50)
+        dIm_dphi1 = gradient.dIm_dphi(im1, phi_1, eval_res)
         dED_dphi1 = gradient.dED_dphit(im1, im2, phi_1, points, dIm_dphi1)
-        # regularization term gradient
-        G = utils.get_G_from_S(S, 100, 50, im1.shape)
         dER_dalpha = gradient.dER_dalpha(G, alpha)
         # final gradient
         final_gradient = gradient.error_gradient(dED_dphi1, dphi_dalpha_1, dER_dalpha)
@@ -72,20 +75,24 @@ def compute_error_and_gradient(im1, im2, points, kernels, alpha, S, kernel_res=1
 
 
 # final registration function for 3d
-def find_transformation(im1, im2, kernel_res=100, eval_res=50, c_sup=200):
+def find_transformation(im1, im2, kernel_res=100, eval_res=50, c_sup=200, d=3):
     print('Getting grid points.')
-    kernel_grid = vector_fields.get_points_3d(im1, kernel_res)
-    points = vector_fields.get_points_3d(im1, eval_res)
+    if d==2:
+        kernel_grid = vector_fields.get_points_2d(im1, kernel_res)
+        points = vector_fields.get_points_2d(im1, eval_res)
+    else:
+        kernel_grid = vector_fields.get_points_3d(im1, kernel_res)
+        points = vector_fields.get_points_3d(im1, eval_res)
 
     S = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), kernel_grid,
-                                        points)
+                                        points, dim=d)
     nxd = S.shape[1]
     alpha_0 = np.zeros(nxd)
 
     # optimization
     objective_function = (lambda alpha:
                           compute_error_and_gradient(im1, im2,
-                                                     points, kernel_grid, alpha, S, kernel_res=100, eval_res=50, c_sup=200))
+                                                     points, kernel_grid, alpha, S, kernel_res=kernel_res, eval_res=eval_res, c_sup=c_sup, dim=d))
     best_alpha = optimize.minimize(objective_function, alpha_0, jac=True, options={'disp':True})
 
     # some other optimizers to play with:
