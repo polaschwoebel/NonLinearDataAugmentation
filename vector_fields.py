@@ -3,6 +3,7 @@ import numpy as np
 from scipy import sparse
 from sklearn.metrics.pairwise import euclidean_distances
 
+
 # Produce control points (= grid) for a 2d grayscale image.
 def get_points_2d(image, res):
     rows, columns = image.shape
@@ -48,7 +49,7 @@ def blowup_S(S, dim=3):
 
 
 # Quick computation of the Gram/evaluation matrices.
-def evaluation_matrix(function, kernels, points, c_sup=200, dim=3):
+def evaluation_matrix(function, kernels, points, c_sup, dim):
     dim = kernels.shape[1]
     vect_kernel = np.vectorize(dist_kernel)
     S = euclidean_distances(points, kernels)/c_sup
@@ -61,11 +62,8 @@ def evaluation_matrix(function, kernels, points, c_sup=200, dim=3):
             S[np.where(S == d)] = - val
     S[S > 1] = 0
     S = -S
-    print('Computations done.')
     full_S = blowup_S(S, dim)
     # Note: we can avoid this blowing up by reshaping S and alpha as discussed today (25.04.)
-    print('Blowing up done.')
-    print('full_S', full_S.shape, full_S.dtype)
     return sparse.csc_matrix(full_S)
 
 

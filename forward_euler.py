@@ -14,11 +14,10 @@ def interpolate_n_d(x_0, V_0, x_i):
     return V_i
 
 
-def integrate(x_0, kernels, alpha, S, steps=10, compute_gradient=True, c_sup=200):
+def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True):
     dim = x_0.shape[1]
     V_i = vector_fields.make_V(S, alpha.reshape((alpha.size, -1)), dim)
     x_i = x_0
-    print(x_i.shape, V_i.shape)
     du_dalpha_i = S
     for _ in range(steps):
         print('Computing step', _)
@@ -26,13 +25,13 @@ def integrate(x_0, kernels, alpha, S, steps=10, compute_gradient=True, c_sup=200
         x_i = x_i + V_i/steps
         # Note: first S_i computation could be avoided since S_i is passed
         S_i = vector_fields.evaluation_matrix(lambda x1, x2:
-                                              vector_fields.kernel(x1, x2, c_sup), kernels, x_i)
+                                              vector_fields.kernel(x1, x2, c_sup), kernels, x_i, c_sup, dim)
         V_i = vector_fields.make_V(S_i, alpha.reshape((alpha.size, -1)), dim)
         print('Computing done. Now gradient, if desired.')
         if compute_gradient:
             # gradient computations
-            dv_dphit_i = gradient.dv_dphit(x_i, kernels, alpha, c_sup=200)
-            du_dalpha_i = gradient.next_dphi_dalpha(S, dv_dphit_i, du_dalpha_i, steps)
+            dv_dphit_i = gradient.dv_dphit(x_i, kernels, alpha, c_sup=c_sup)
+            du_dalpha_i = gradient.next_dphi_dalpha(S_i, dv_dphit_i, du_dalpha_i, steps)
             print('Gradient.')
 
     # boundary conditions
