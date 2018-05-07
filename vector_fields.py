@@ -35,6 +35,7 @@ def dist_kernel(r):
 
 
 def blowup_S(S, dim=3):
+    #print('Blowup dim:', dim)
     (m, n) = S.shape
     if dim==3:
         S_full = np.zeros((3 * m, 3 * n))
@@ -45,11 +46,12 @@ def blowup_S(S, dim=3):
         S_full = np.zeros((2 * m, 2 * n))
         S_full[0::2, 0::2] = S
         S_full[1::2, 1::2] = S
+    #print(S_full[0:4, 0:4])
     return S_full
 
 
 # Quick computation of the Gram/evaluation matrices.
-def evaluation_matrix(function, kernels, points, c_sup, dim):
+def start_evaluation_matrix(function, kernels, points, c_sup, dim):
     dim = kernels.shape[1]
     vect_kernel = np.vectorize(dist_kernel)
     S = euclidean_distances(points, kernels)/c_sup
@@ -64,6 +66,18 @@ def evaluation_matrix(function, kernels, points, c_sup, dim):
     S = -S
     full_S = blowup_S(S, dim)
     # Note: we can avoid this blowing up by reshaping S and alpha as discussed today (25.04.)
+    return sparse.csc_matrix(full_S)
+
+
+def evaluation_matrix(function, kernels, points, c_sup, dim):
+    dim = kernels.shape[1]
+    vect_kernel = np.vectorize(dist_kernel)
+    S = euclidean_distances(points, kernels)/c_sup
+    S[np.where(S > 1)] = -1
+    non_zero_indices = np.where(S >= 0)
+    S[non_zero_indices] = vect_kernel(S[non_zero_indices])
+    S[np.where(S == -1)] = 0
+    full_S = blowup_S(S, dim)
     return sparse.csc_matrix(full_S)
 
 

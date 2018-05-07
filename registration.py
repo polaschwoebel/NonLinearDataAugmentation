@@ -39,12 +39,12 @@ def E_R(G, alpha, sigma=1):
 
 def compute_error_and_gradient(im1, im2, points, kernels, alpha, S, kernel_res, eval_res, c_sup, dim):
         print('REG -- Compute transformation.')
+        print('REG -- alpha:', alpha)
         phi_1, dphi_dalpha_1 = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10)
         # recompute G, function to cut it out probably faulty and not much faster (?)
         #G = utils.get_G_from_S(S, kernel_res, eval_res, im1.shape)
         G = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), kernels,
                                             kernels, dim=dim, c_sup=c_sup)
-
         print('REG -- Compute Error.')
         E_Data = E_D(im1, im2, points, phi_1, eval_res=eval_res)
         print('REG -- Data term:', E_Data)

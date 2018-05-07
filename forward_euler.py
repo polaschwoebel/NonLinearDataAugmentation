@@ -4,6 +4,8 @@ import utils
 import gradient
 import vector_fields
 
+import plotting_utils
+
 # WILL BE REPLACED ONCE CHANGED BELOW
 # wrapper for scipy interpolation so that it can handle the d-dimensional vectorfields (d=2 or d=3)
 def interpolate_n_d(x_0, V_0, x_i):
@@ -15,6 +17,7 @@ def interpolate_n_d(x_0, V_0, x_i):
 
 
 def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True):
+    print(c_sup)
     dim = x_0.shape[1]
     V_i = vector_fields.make_V(S, alpha.reshape((alpha.size, -1)), dim)
     x_i = x_0
@@ -23,10 +26,18 @@ def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True):
         print('Computing step', _)
         # make a step
         x_i = x_i + V_i/steps
+        #print('x_i:', x_i)
+
         # Note: first S_i computation could be avoided since S_i is passed
         S_i = vector_fields.evaluation_matrix(lambda x1, x2:
                                               vector_fields.kernel(x1, x2, c_sup), kernels, x_i, c_sup, dim)
         V_i = vector_fields.make_V(S_i, alpha.reshape((alpha.size, -1)), dim)
+
+        # DEBUG
+        #print('alpha:', alpha)
+        #plotting_utils.plot_vectorfield_2d(x_i, V_i, 'mnist_vectorfield_2d_%s.png' %_)
+        #print('S.dot(alpha):', S_i.dot(alpha))
+
         print('Computing done. Now gradient, if desired.')
         if compute_gradient:
             # gradient computations

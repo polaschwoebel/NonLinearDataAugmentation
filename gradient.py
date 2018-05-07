@@ -70,18 +70,16 @@ def next_dphi_dalpha(S, dv_dphit, prev_dphi_dalpha, step_size): # du_dalpha in t
     identity = sparse.identity(m)
     dphi_dalpha = (identity + 1/p * dv_dphit).dot(prev_dphi_dalpha) + 1/p * S
     #print('GRADIENT -- dphi_dalpha:', dphi_dalpha.todense())
-    return dphi_dalpha
+    return dphi_dalpha.T
 
 
 def dIm_dphi(img, phi, res):
     new_shape = utils.reconstruct_dimensions(img, res)
     img_lowres = utils.interpolate_image(img, phi, res).reshape(new_shape, order='F')
-
-    gradients_3dims = np.gradient(img_lowres.astype(float))
-    gradient_3d_array = np.dstack([dim_arr.flatten() for dim_arr in gradients_3dims])
-    gradient_diagonal = gradient_3d_array.flatten()
-
-    return sparse.diags(gradient_diagonal)
+    gradients_all_dims = np.gradient(img_lowres.astype(float))
+    gradient_array = np.dstack([dim_arr.flatten() for dim_arr in gradients_all_dims])[0]
+    block_diag = sparse.block_diag(gradient_array)
+    return block_diag
 
 
 def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the paper
@@ -90,8 +88,12 @@ def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the pap
         target_points = im2[points[:, 1], points[:, 0], points[:, 2]]
     else:
         target_points = im2[points[:, 1], points[:, 0]]
-    full_dim_error = np.repeat(source_points-target_points, dim)
-    return sparse.csc_matrix(2 * dIm1_dphi1.dot(full_dim_error))
+    #full_dim_error = np.repeat(source_points-target_points, dim)
+    diff =(source_points-target_points)
+    diff = sparse.csr_matrix(diff.reshape((-1,len(diff))))
+    print('GRADIENT-- check shapes:', diff.shape, dIm1_dphi1.shape, diff.dot(dIm1_dphi1))
+    #return sparse.csc_matrix(2 * dIm1_dphi1.dot(full_dim_error))
+    return sparse.csc_matrix(2*diff.dot(dIm1_dphi1))
 
 
 # remember that this is G not S!
