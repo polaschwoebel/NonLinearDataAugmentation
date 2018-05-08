@@ -37,7 +37,7 @@ def interpolate_image(image, phi_1, res):
         coords = [phi_1[:, 1], phi_1[:, 0]]
     if dim == 3:
         coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
-    interpolated = ndimage.map_coordinates(image, coords)
+    interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
     return interpolated
 
 
