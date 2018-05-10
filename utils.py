@@ -60,12 +60,3 @@ def get_G_from_S(S, kernel_res, eval_res, img_shape):
     indices = indices.astype(bool)
     G = S[indices, :]
     return G
-
-
-def apply_transformation(image, trafo, res):
-    # 'nearest neighbor interpolating' trafo to get integer indices
-    trafo = np.rint(trafo).astype(int)
-    new_shape = reconstruct_dimensions(image, res)
-    warped = image[trafo[:, 1], trafo[:, 0], trafo[:, 2]].reshape(
-                    new_shape[0], new_shape[1], new_shape[2], order='F')
-    return warped
