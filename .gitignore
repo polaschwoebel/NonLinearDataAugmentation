@@ -1,3 +1,6 @@
 *.ipynb
 results/*
 evaluation_matrices/*
+test.py
+mnistdata/*
+__pycache__/*

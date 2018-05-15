@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 from scipy import sparse
-import utils
+import diffutils as utils
 import time
 import cv2
 

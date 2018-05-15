@@ -1,7 +1,7 @@
 import numpy as np
 import vector_fields
 import forward_euler
-import utils
+import diffutils as utils
 import gradient
 from scipy import optimize
 
