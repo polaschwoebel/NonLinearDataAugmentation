@@ -31,20 +31,29 @@ def reconstruct_dimensions(image, res):
     return new_shape
 
 
-def spline(img, phi, res):
+def spline(img, phi, res, return_gradient=False):
     rows, columns = img.shape
     lx = np.linspace(0, columns-1, columns)
     ly = np.linspace(0, rows-1, rows)
+    phi_x = phi[:,0]
+    phi_y = phi[:,1]
 
-    phi_x = phi[:,0]#.reshape(img.shape, order='F')
-    phi_y = phi[:,1]#.reshape(img.shape, order='F')
-
-    spline = interpolate.RectBivariateSpline(lx, ly, # coords once only
+    spline = interpolate.RectBivariateSpline(ly, lx, # coords once only
                                                 img.astype(np.float))
 
     interpolated =  spline.ev(phi_y, phi_x, dx = 0,
-              dy = 0)#.reshape((28,28), order='F')
-    return interpolated
+              dy = 0)
+    if not return_gradient:
+        return interpolated
+    x_grad = spline.ev(phi_y, phi_x, dx = 1,
+                  dy = 0)
+
+    y_grad = spline.ev(phi_y, phi_x, dx = 0,
+                  dy = 1)
+    all_grads = [x_grad, y_grad]
+    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in all_grads[::-1]])[0]
+    block_diag = sparse.block_diag(gradient_array)
+    return block_diag
 
 
 def interpolate_image(image, phi_1, res):
@@ -53,8 +62,8 @@ def interpolate_image(image, phi_1, res):
         coords = [phi_1[:, 1], phi_1[:, 0]]
     if dim == 3:
         coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
-    #interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
-    interpolated = spline(image, phi_1, res) # doesn't wprk?!?
+    interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
+    #interpolated = spline(image, phi_1, res) # doesn't wprk?!?
     return interpolated
 
 

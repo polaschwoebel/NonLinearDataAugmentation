@@ -80,26 +80,23 @@ def dIm_dphi(img, phi, res):
     new_shape = utils.reconstruct_dimensions(img, res)
     img_lowres = utils.interpolate_image(img, phi, res).reshape(new_shape, order='F')
     gradients_all_dims = np.gradient(img_lowres.astype(float))
-    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
+    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims[::-1]])[0]
     block_diag = sparse.block_diag(gradient_array)
     return block_diag
 
 
 def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the paper
-    print('phi_1:', phi_1)
     source_points = utils.interpolate_image(im1, phi_1, eval_res)
     if dim==3:
         target_points = im2[points[:, 1], points[:, 0], points[:, 2]]
     else:
         target_points = im2[points[:, 1], points[:, 0]]
-    #full_dim_error = np.repeat(source_points-target_points, dim)
     diff =(source_points-target_points)
     diff = sparse.csr_matrix(diff.reshape((-1,len(diff)), order='F'))
-    #print('GRADIENT-- check shapes:', diff.shape, dIm1_dphi1.shape)
-    #return sparse.csc_matrix(2 * dIm1_dphi1.dot(full_dim_error))
-    print('GRADIENT -- point order?')
-    print('source_points:', source_points, 'target_points:', target_points)
-    print('diff:', diff.todense(), 'image gradient:', dIm1_dphi1.todense(), 'product:', diff.dot(dIm1_dphi1))
+
+    #print('GRADIENT -- point order?')
+    #print('source_points:', source_points, 'target_points:', target_points)
+    #print('diff:', diff.todense(), 'image gradient:', dIm1_dphi1.todense(), 'product:', diff.dot(dIm1_dphi1))
     #return
     return sparse.csc_matrix(2*diff.dot(dIm1_dphi1))
 
