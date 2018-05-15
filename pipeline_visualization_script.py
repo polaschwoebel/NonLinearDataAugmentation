@@ -4,7 +4,7 @@ import cv2
 import os
 import vector_fields
 import forward_euler
-import utils
+import diffutils as utils
 import plotting_utils
 import registration
 

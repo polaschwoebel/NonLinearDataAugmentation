@@ -1,6 +1,6 @@
 from scipy import interpolate, sparse
 import numpy as np
-import utils
+import diffutils as utils
 import gradient
 import vector_fields
 import matplotlib.pyplot as plt
