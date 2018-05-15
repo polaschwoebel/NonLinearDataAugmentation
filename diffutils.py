@@ -1,4 +1,4 @@
-from scipy import sparse, ndimage
+from scipy import sparse, ndimage, interpolate
 import numpy as np
 import registration
 import forward_euler
@@ -34,14 +34,32 @@ def reconstruct_dimensions(image, res):
     return new_shape
 
 
+def spline(img, phi, res):
+    rows, columns = img.shape
+    lx = np.linspace(0, columns-1, columns)
+    ly = np.linspace(0, rows-1, rows)
+
+    phi_x = phi[:,0]#.reshape(img.shape, order='F')
+    phi_y = phi[:,1]#.reshape(img.shape, order='F')
+
+    spline = interpolate.RectBivariateSpline(lx, ly, # coords once only
+                                                img.astype(np.float))
+
+    interpolated =  spline.ev(phi_y, phi_x, dx = 0,
+              dy = 0)#.reshape((28,28), order='F')
+    return interpolated
+
+
 def interpolate_image(image, phi_1, res):
     dim = phi_1.shape[-1]
     if dim == 2:
         coords = [phi_1[:, 1], phi_1[:, 0]]
     if dim == 3:
         coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
-    interpolated = ndimage.map_coordinates(image, coords, order = 1,
-                                           mode='nearest')
+    #interpolated = ndimage.map_coordinates(image, coords, order = 1,
+    #                                       mode='nearest')
+    #interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
+    interpolated = spline(image, phi_1, res) # doesn't wprk?!?
     return interpolated
 
 
