@@ -38,23 +38,23 @@ def E_R(G, alpha, sigma=1):
 
 
 def compute_error_and_gradient(im1, im2, points, kernels, alpha, S, kernel_res, eval_res, c_sup, dim):
-        print('REG -- Compute transformation.')
-        print('REG -- alpha:', alpha)
+        #print('REG -- Compute transformation.')
+        #print('REG -- alpha:', alpha)
         phi_1, dphi_dalpha_1 = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10)
+        #phi_1 = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10, compute_gradient = False)
         # recompute G, function to cut it out probably faulty and not much faster (?)
         #G = utils.get_G_from_S(S, kernel_res, eval_res, im1.shape)
         G = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), kernels,
                                             kernels, dim=dim, c_sup=c_sup)
-        print('REG -- Compute Error.')
+        #print('REG -- Compute Error.')
         E_Data = E_D(im1, im2, points, phi_1, eval_res=eval_res)
-        print('REG -- Data term:', E_Data)
+        print('REG -- Data term:', E_Data / (kernel_res * eval_res))
         E_Reg = E_R(G, alpha)
         print('REG -- Regularization term:', E_Reg)
         E = E_Data + E_Reg
-        print('REG -- Now compute gradient.')
+        #print('REG -- Now compute gradient.')
         # data term error gradient
         dIm_dphi1 = gradient.dIm_dphi(im1, phi_1, eval_res)
-        #print('phi_1:', phi_1, 'Image gradient:', dIm_dphi1.todense())
 
         dED_dphi1 = gradient.dED_dphit(im1, im2, phi_1, points, dIm_dphi1, eval_res)
         dER_dalpha = gradient.dER_dalpha(G, alpha)
