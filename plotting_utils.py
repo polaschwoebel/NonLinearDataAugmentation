@@ -26,3 +26,9 @@ def plot_vectorfield_3d(grid, V, filename):
     ax = fig.add_subplot(111, projection='3d')
     ax.quiver(grid[:, 0], grid[:, 1], grid[:, 2], V[:, 0], V[:, 1], V[:, 2])
     plt.savefig('results/%s' % filename)
+
+def plot_ims(ims):
+    f, spl = plt.subplots(1, len(ims))
+    spl = spl.ravel()
+    for i in range(len(ims)):
+        spl[i].imshow(ims[i])

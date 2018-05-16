@@ -1,5 +1,8 @@
 from scipy import sparse, ndimage, interpolate
 import numpy as np
+import registration
+import forward_euler
+import vector_fields
 
 
 def enforce_boundaries(coords, img_shape):
@@ -62,8 +65,9 @@ def interpolate_image(image, phi_1, res):
         coords = [phi_1[:, 1], phi_1[:, 0]]
     if dim == 3:
         coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
-    interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
-    #interpolated = spline(image, phi_1, res) # doesn't wprk?!?
+
+    #interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
+    interpolated = spline(image, phi_1, res) # doesn't wprk?!?
     return interpolated
 
 
@@ -86,3 +90,11 @@ def get_G_from_S(S, kernel_res, eval_res, img_shape):
     indices = indices.astype(bool)
     G = S[indices, :]
     return G
+
+# Apply transformation image at full resolution
+def apply_trafo_full(I1, alpha, kernels, c_sup, dim):
+    points = vector_fields.get_points_2d(I1, 1)
+    S = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup),
+                                        kernels, points, c_sup, dim=dim)
+    phi, _ = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10)
+    return registration.apply_transformation(I1, points, phi, 1).reshape(I1.shape[0], I1.shape[1])

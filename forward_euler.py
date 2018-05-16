@@ -22,9 +22,9 @@ def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True, de
     V_i = vector_fields.make_V(S, alpha.reshape((alpha.size, -1)), dim)
     x_i = x_0
     #du_dalpha_i = S
-    dphi_dalpha_i = sparse.csc_matrix(S.shape)
+    dphi_dalpha_i = sparse.csc_matrix(S)
     for i in range(steps):
-        print('Computing step', i)
+        #print('Computing step', i)
         # make a step
         x_i = x_i + V_i/steps
 
@@ -42,14 +42,13 @@ def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True, de
         #plotting_utils.plot_vectorfield_2d(x_i, V_i, 'mnist_vectorfield_2d_%s.png' %_)
         #print('S.dot(alpha):', S_i.dot(alpha))
 
-        print('Computing done. Now gradient, if desired.')
+        #print('Computing done. Now gradient, if desired.')
         if compute_gradient:
             # gradient computations
             dv_dphit_i = gradient.dv_dphit(x_i, kernels, alpha, c_sup=c_sup)
             dphi_dalpha_i = gradient.next_dphi_dalpha(S_i, dv_dphit_i, dphi_dalpha_i, steps)
             if debug:
                 print('Gradient ', i, ': \n -dv_dphit:', dv_dphit_i, '\n dphi_dalpha_i:', dphi_dalpha_i)
-
 
 
     # boundary conditions
