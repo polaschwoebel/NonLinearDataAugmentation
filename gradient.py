@@ -95,10 +95,6 @@ def dIm_dphi_old(img, phi, res):
 
 
 def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the paper
-<<<<<<< HEAD
-=======
-    #print('phi_1:', phi_1)
->>>>>>> ccb765a1c3cbafb0d4fdfa35824549d4ce2ae194
     source_points = utils.interpolate_image(im1, phi_1, eval_res)
     if dim==3:
         target_points = im2[points[:, 1], points[:, 0], points[:, 2]]
@@ -106,16 +102,6 @@ def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the pap
         target_points = im2[points[:, 1], points[:, 0]]
     diff =(source_points-target_points)
     diff = sparse.csr_matrix(diff.reshape((-1,len(diff)), order='F'))
-<<<<<<< HEAD
-
-=======
-    #print('GRADIENT-- check shapes:', diff.shape, dIm1_dphi1.shape)
-    #return sparse.csc_matrix(2 * dIm1_dphi1.dot(full_dim_error))
->>>>>>> ccb765a1c3cbafb0d4fdfa35824549d4ce2ae194
-    #print('GRADIENT -- point order?')
-    #print('source_points:', source_points, 'target_points:', target_points)
-    #print('diff:', diff.todense(), 'image gradient:', dIm1_dphi1.todense(), 'product:', diff.dot(dIm1_dphi1))
-    #return
     return sparse.csc_matrix(2*diff.dot(dIm1_dphi1))
 
 
