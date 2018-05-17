@@ -3,6 +3,8 @@ import numpy as np
 import registration
 import forward_euler
 import vector_fields
+import matlab.engine
+import matlab
 
 
 def enforce_boundaries(coords, img_shape):
@@ -49,17 +51,27 @@ def spline(img, phi, res):
               dy = 0)#.reshape((28,28), order='F')
     return interpolated
 
+# Assumes 2D 
+def spline2(img, eng, spline_rep, phi, res):
+    phi_x = matlab.double(phi[:,0].tolist())
+    phi_y = matlab.double(phi[:,1].tolist())
+    interpolation = np.array(eng.eval_fun(spline_rep, phi_x, phi_y))
+    # Set zeros where NaN
+    interpolation[np.isnan(interpolation)] = 0
+    return interpolation
+    
 
-def interpolate_image(image, phi_1, res):
-    dim = phi_1.shape[-1]
-    if dim == 2:
-        coords = [phi_1[:, 1], phi_1[:, 0]]
-    if dim == 3:
-        coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
+def interpolate_image(image, eng, spline_rep, phi_1, res):
+#    dim = phi_1.shape[-1]
+#    if dim == 2:
+#        coords = [phi_1[:, 1], phi_1[:, 0]]
+#    if dim == 3:
+#        coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
     #interpolated = ndimage.map_coordinates(image, coords, order = 1,
     #                                       mode='nearest')
     #interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
-    interpolated = spline(image, phi_1, res) # doesn't wprk?!?
+    interpolated = spline2(image, eng, spline_rep, phi_1, res)
+    
     return interpolated
 
 
@@ -84,9 +96,9 @@ def get_G_from_S(S, kernel_res, eval_res, img_shape):
     return G
 
 # Apply transformation image at full resolution
-def apply_trafo_full(I1, alpha, kernels, c_sup, dim):
+def apply_trafo_full(I1, alpha, kernels, c_sup, dim, eng, spline_rep):
     points = vector_fields.get_points_2d(I1, 1)
     S = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), 
                                         kernels, points, c_sup, dim=dim)
     phi, _ = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10)
-    return registration.apply_transformation(I1, points, phi, 1).reshape(I1.shape[0], I1.shape[1])
+    return registration.apply_transformation(I1, eng, spline_rep, points, phi, 1).reshape(I1.shape[0], I1.shape[1])

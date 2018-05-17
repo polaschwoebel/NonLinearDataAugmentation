@@ -2,8 +2,11 @@ import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 from scipy import sparse
 import diffutils as utils
+import matplotlib.pyplot as plt
 import time
-import cv2
+#import cv2
+import matlab.engine
+import matlab
 
 # This global variable is a bit hacky. It's 3 in the real registration, but could potentially be
 # changed to 2 if we ever wanted to plot it.
@@ -76,10 +79,17 @@ def next_dphi_dalpha(S, dv_dphit, prev_dphi_dalpha, step_size): # du_dalpha in t
     return dphi_dalpha
 
 
-def dIm_dphi(img, phi, res):
-    new_shape = utils.reconstruct_dimensions(img, res)
-    img_lowres = utils.interpolate_image(img, phi, res).reshape(new_shape, order='F')
-    gradients_all_dims = np.gradient(img_lowres.astype(float))
+def dIm_dphi(img, eng, spline_rep, phi, res):
+    #new_shape = utils.reconstruct_dimensions(img, res)
+    #interpolation = utils.interpolate_image(img, eng, spline_rep, phi, res).reshape(new_shape, order='F')
+    phi_x = matlab.double(phi[:,0].tolist())
+    phi_y = matlab.double(phi[:,1].tolist())
+    dev1 = np.array(eng.eval_dev1(spline_rep, phi_x, phi_y), dtype=np.float32)
+    dev2 = np.array(eng.eval_dev2(spline_rep, phi_x, phi_y), dtype=np.float32)
+    dev1[np.isnan(dev1)] = 0
+    dev2[np.isnan(dev2)] = 0
+    gradients_all_dims = [dev1, dev2]
+    #gradients_all_dims = np.gradient(interpolation.astype(float))
     gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
     block_diag = sparse.block_diag(gradient_array)
     return block_diag
@@ -94,16 +104,19 @@ def dIm_dphi_old(img, phi, res):
     return block_diag
 
 
-def dED_dphit(im1, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the paper
+def dED_dphit(im1, eng, spline_rep, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the paper
     #print('phi_1:', phi_1)
-    source_points = utils.interpolate_image(im1, phi_1, eval_res)
+    source_points = utils.interpolate_image(im1, eng, spline_rep, phi_1, eval_res)
+    source_points = source_points.reshape(1, -1)
+    #target_points = im2.reshape(1, -1)
     if dim==3:
         target_points = im2[points[:, 1], points[:, 0], points[:, 2]]
     else:
         target_points = im2[points[:, 1], points[:, 0]]
     #full_dim_error = np.repeat(source_points-target_points, dim)
     diff =(source_points-target_points)
-    diff = sparse.csr_matrix(diff.reshape((-1,len(diff)), order='F'))
+    #diff = sparse.csr_matrix(diff.reshape((-1,len(diff)), order='F'))
+    diff = sparse.csr_matrix(diff)
     #print('GRADIENT-- check shapes:', diff.shape, dIm1_dphi1.shape)
     #return sparse.csc_matrix(2 * dIm1_dphi1.dot(full_dim_error))
     #print('GRADIENT -- point order?')
@@ -124,6 +137,7 @@ def dER_dalpha(G, alpha):
 def error_gradient(dED_dphit1, dphi_dalpha, dER_dalpha):
     weight = 0.05 # Akshay's suggestion
     data_gradient = dED_dphit1.dot(dphi_dalpha).T
+    print(data_gradient.shape)
     reg_gradient = dER_dalpha
     #print('GRADIENT -- shapes. E_D: supposed to be 2m x 1 (after transpose)', data_gradient.shape,
     #    'E_R: supposed to be 2m x 1', reg_gradient.shape)

@@ -22,7 +22,7 @@ def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True, de
     V_i = vector_fields.make_V(S, alpha.reshape((alpha.size, -1)), dim)
     x_i = x_0
     #du_dalpha_i = S
-    dphi_dalpha_i = sparse.csc_matrix(S)
+    dphi_dalpha_i = sparse.csc_matrix(S.shape)
     for i in range(steps):
         #print('Computing step', i)
         # make a step
