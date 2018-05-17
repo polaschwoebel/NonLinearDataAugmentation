@@ -80,16 +80,8 @@ def dIm_dphi(img, phi, res):
     new_shape = utils.reconstruct_dimensions(img, res)
     img_lowres = utils.interpolate_image(img, phi, res).reshape(new_shape, order='F')
     gradients_all_dims = np.gradient(img_lowres.astype(float))
+    # switch y and x here
     gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims[::-1]])[0]
-    block_diag = sparse.block_diag(gradient_array)
-    return block_diag
-
-
-def dIm_dphi_old(img, phi, res):
-    new_shape = utils.reconstruct_dimensions(img, res)
-    img_lowres = utils.interpolate_image(img, phi, res).reshape(new_shape, order='F')
-    gradients_all_dims = np.gradient(img_lowres.astype(float))
-    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[0]
     block_diag = sparse.block_diag(gradient_array)
     return block_diag
 

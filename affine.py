@@ -3,9 +3,12 @@ import vector_fields
 import math as m
 import registration
 from skimage import io
+from scipy import interpolate
 
 
 def makeM(theta, scale, tx, ty, centerx, centery):
+    #theta = theta*max_theta
+
     alpha = scale * m.cos(theta)
     beta = scale * m.sin(theta)
     M = np.array([[alpha, beta, tx],
@@ -69,3 +72,32 @@ def dphi_dM(image, parameters):
         ix = i*2
         dphi_dM[ix:ix+2, :] = dphi_dM_pointwise(phi[i, :], theta, scale, tx, ty)
     return dphi_dM
+
+
+def spline_dIm_dphi(img, phi, res, return_image=False):
+    rows, columns = img.shape
+    lx = np.linspace(0, columns-1, columns)
+    ly = np.linspace(0, rows-1, rows)
+
+    phi_x = phi[:,0]
+    phi_y = phi[:,1]
+
+    spline = interpolate.RectBivariateSpline(ly, lx, # coords once only
+                                                img.astype(np.float))
+
+    interpolated =  spline.ev(phi_y, phi_x, dx = 0,
+              dy = 0).reshape((rows, columns), order='F')
+    if return_image:
+        return interpolated
+
+    x_grad = spline.ev(phi_y, phi_x, dx = 1,
+                  dy = 0)
+
+    y_grad = spline.ev(phi_y, phi_x, dx = 0,
+                  dy = 1)
+    #return x_grad, y_grad
+    all_grads = [x_grad, y_grad]
+
+    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in all_grads[::-1]])[0]
+    block_diag = sparse.block_diag(gradient_array)
+    return block_diag
