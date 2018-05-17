@@ -89,7 +89,7 @@ def compute_error_and_gradient2(im1, eng, spline_rep, im2, points, kernels, alph
         dER_dalpha = gradient.dER_dalpha(G, alpha)
         # final gradient
         final_gradient = gradient.error_gradient(dED_dphi1, dphi_dalpha_1, dER_dalpha)
-        #print('Error gradient:', final_gradient)
+        print('Error gradient:', final_gradient)
         return E, final_gradient
 
 

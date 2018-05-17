@@ -116,7 +116,6 @@ def dED_dphit(im1, eng, spline_rep, im2, phi_1, points, dIm1_dphi1, eval_res): #
     else:
         target_points = im2[points[:, 1], points[:, 0]]
     diff =(source_points-target_points)
-    print(diff.shape)
     #diff = sparse.csr_matrix(diff.reshape((-1,len(diff)), order='F'))
     diff = sparse.csr_matrix(diff)
     #print('GRADIENT-- check shapes:', diff.shape, dIm1_dphi1.shape)
@@ -140,7 +139,6 @@ def dER_dalpha(G, alpha):
 def error_gradient(dED_dphit1, dphi_dalpha, dER_dalpha):
     weight = 0.05 # Akshay's suggestion
     data_gradient = dED_dphit1.dot(dphi_dalpha).T
-    print(data_gradient.shape)
     reg_gradient = dER_dalpha
     #print('GRADIENT -- shapes. E_D: supposed to be 2m x 1 (after transpose)', data_gradient.shape,
     #    'E_R: supposed to be 2m x 1', reg_gradient.shape)
