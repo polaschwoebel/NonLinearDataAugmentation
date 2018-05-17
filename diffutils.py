@@ -36,20 +36,30 @@ def reconstruct_dimensions(image, res):
     return new_shape
 
 
-def spline(img, phi, res):
+def spline(img, phi, res, return_gradient=False):
     rows, columns = img.shape
     lx = np.linspace(0, columns-1, columns)
     ly = np.linspace(0, rows-1, rows)
+    phi_x = phi[:,0]
+    phi_y = phi[:,1]
 
-    phi_x = phi[:,0]#.reshape(img.shape, order='F')
-    phi_y = phi[:,1]#.reshape(img.shape, order='F')
-
-    spline = interpolate.RectBivariateSpline(lx, ly, # coords once only
+    spline = interpolate.RectBivariateSpline(ly, lx, # coords once only
                                                 img.astype(np.float))
 
     interpolated =  spline.ev(phi_y, phi_x, dx = 0,
-              dy = 0)#.reshape((28,28), order='F')
-    return interpolated
+              dy = 0)
+    if not return_gradient:
+        return interpolated
+    x_grad = spline.ev(phi_y, phi_x, dx = 1,
+                  dy = 0)
+
+    y_grad = spline.ev(phi_y, phi_x, dx = 0,
+                  dy = 1)
+    all_grads = [x_grad, y_grad]
+    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in all_grads[::-1]])[0]
+    block_diag = sparse.block_diag(gradient_array)
+    return block_diag
+
 
 # Assumes 2D 
 def spline2(img, eng, spline_rep, phi, res):
@@ -69,6 +79,7 @@ def interpolate_image(image, eng, spline_rep, phi_1, res):
 #        coords = [phi_1[:, 1], phi_1[:, 0], phi_1[:, 2]]
     #interpolated = ndimage.map_coordinates(image, coords, order = 1,
     #                                       mode='nearest')
+
     #interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
     interpolated = spline2(image, eng, spline_rep, phi_1, res)
     
@@ -98,7 +109,7 @@ def get_G_from_S(S, kernel_res, eval_res, img_shape):
 # Apply transformation image at full resolution
 def apply_trafo_full(I1, alpha, kernels, c_sup, dim, eng, spline_rep):
     points = vector_fields.get_points_2d(I1, 1)
-    S = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup), 
+    S = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup),
                                         kernels, points, c_sup, dim=dim)
     phi, _ = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10)
     return registration.apply_transformation(I1, eng, spline_rep, points, phi, 1).reshape(I1.shape[0], I1.shape[1])

@@ -78,7 +78,6 @@ def next_dphi_dalpha(S, dv_dphit, prev_dphi_dalpha, step_size): # du_dalpha in t
     #print('GRADIENT -- dphi_dalpha:', dphi_dalpha.todense())
     return dphi_dalpha
 
-
 def dIm_dphi(img, eng, spline_rep, phi, res):
     #new_shape = utils.reconstruct_dimensions(img, res)
     #interpolation = utils.interpolate_image(img, eng, spline_rep, phi, res).reshape(new_shape, order='F')
@@ -100,6 +99,8 @@ def dIm_dphi_old(img, phi, res):
     img_lowres = utils.interpolate_image(img, phi, res).reshape(new_shape, order='F')
     gradients_all_dims = np.gradient(img_lowres.astype(float))
     gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[0]
+    # switch y and x here
+    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims[::-1]])[0]
     block_diag = sparse.block_diag(gradient_array)
     return block_diag
 
@@ -107,14 +108,15 @@ def dIm_dphi_old(img, phi, res):
 def dED_dphit(im1, eng, spline_rep, im2, phi_1, points, dIm1_dphi1, eval_res): #dEd_du in the paper
     #print('phi_1:', phi_1)
     source_points = utils.interpolate_image(im1, eng, spline_rep, phi_1, eval_res)
-    source_points = source_points.reshape(1, -1)
+    #source_points = source_points.reshape(1, -1)
     #target_points = im2.reshape(1, -1)
+
     if dim==3:
         target_points = im2[points[:, 1], points[:, 0], points[:, 2]]
     else:
         target_points = im2[points[:, 1], points[:, 0]]
-    #full_dim_error = np.repeat(source_points-target_points, dim)
     diff =(source_points-target_points)
+    print(diff.shape)
     #diff = sparse.csr_matrix(diff.reshape((-1,len(diff)), order='F'))
     diff = sparse.csr_matrix(diff)
     #print('GRADIENT-- check shapes:', diff.shape, dIm1_dphi1.shape)
@@ -123,6 +125,7 @@ def dED_dphit(im1, eng, spline_rep, im2, phi_1, points, dIm1_dphi1, eval_res): #
     #print('source_points:', source_points, 'target_points:', target_points)
     #print('diff:', diff.todense(), 'image gradient:', dIm1_dphi1.todense(), 'product:', diff.dot(dIm1_dphi1))
     #return
+    #diff = sparse.csr_matrix(diff.reshape((-1,len(diff)), order='F'))
     return sparse.csc_matrix(2*diff.dot(dIm1_dphi1))
 
 

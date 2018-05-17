@@ -3,7 +3,7 @@ results/*
 evaluation_matrices/*
 test.py
 mnistdata/*
-__pycache__/*
+__pycache__/
 test2.py
 zeroimg.mat
 affinetest.py
