@@ -6,7 +6,10 @@ classdef BSrep < handle
     end
     methods
         function BS = BSrep(I)
+            % Martin:
             addpath('C:\Program Files\MATLAB\R2017a\toolbox\bsarray');
+            % Pola:
+            %addpath('/Users/polaschwoebel/Documents/MATLAB/bsarray');
             BS.rep = bsarray(I);
             BS.dev1 = bspartial(BS.rep, 1);
             BS.dev2 = bspartial(BS.rep, 2);
