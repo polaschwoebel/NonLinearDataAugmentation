@@ -41,7 +41,6 @@ dim = 2
 
 def dv_dphit(phi_t, kernels, alpha, c_sup): # D_phi ("spatial jacobian") in the paper
     #start = time.time()
-    #alpha = alpha.reshape((-1, dim))
     alpha = alpha.reshape((-1, dim)).T
 
     distances = euclidean_distances(phi_t, kernels) / c_sup
@@ -87,7 +86,7 @@ def dIm_dphi(img, eng, spline_rep, phi, res):
     dev2 = np.array(eng.eval_dev2(spline_rep, phi_x, phi_y), dtype=np.float32)
     dev1[np.isnan(dev1)] = 0
     dev2[np.isnan(dev2)] = 0
-    gradients_all_dims = [dev1, dev2]
+    gradients_all_dims = [dev2, dev1]
     #gradients_all_dims = np.gradient(interpolation.astype(float))
     gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
     block_diag = sparse.block_diag(gradient_array)
