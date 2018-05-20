@@ -8,7 +8,7 @@ import matlab.engine
 import matlab
 
 
-def apply_transformation(img_source, eng, spline_rep, points, trafo, points_res, kernel_res=50, return_image=False):
+def apply_transformation(img_source, eng, spline_rep, points, trafo, points_res, return_image=False):
     dim = len(img_source.shape)
     transformed_source_points = utils.interpolate_image(img_source, eng, spline_rep, trafo, points_res)
     # bring points back into image shape - only for visualization
@@ -42,7 +42,6 @@ def E_R(G, alpha, sigma=1):
 
 def compute_error_and_gradient(im1, eng, spline_rep, im2, points, kernels, alpha, S, kernel_res, eval_res, c_sup, dim):
         #print('REG -- Compute transformation.')
-        #print('REG -- alpha:', alpha)
         #phi_1, dphi_dalpha_1 = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10)
         phi_1 = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10, compute_gradient = False)
         # recompute G, function to cut it out probably faulty and not much faster (?)
@@ -58,7 +57,7 @@ def compute_error_and_gradient(im1, eng, spline_rep, im2, points, kernels, alpha
         #print('REG -- Now compute gradient.')
         # data term error gradient
         #dIm_dphi1 = gradient.dIm_dphi(im1, eng, spline_rep, phi_1, eval_res)
-        
+
         #dED_dphi1 = gradient.dED_dphit(im1, eng, spline_rep, im2, phi_1, points, dIm_dphi1, eval_res)
         #dER_dalpha = gradient.dER_dalpha(G, alpha)
         # final gradient
@@ -84,7 +83,7 @@ def compute_error_and_gradient2(im1, eng, spline_rep, im2, points, kernels, alph
         #print('REG -- Now compute gradient.')
         # data term error gradient
         dIm_dphi1 = gradient.dIm_dphi(im1, eng, spline_rep, phi_1, eval_res)
-        
+
         dED_dphi1 = gradient.dED_dphit(im1, eng, spline_rep, im2, phi_1, points, dIm_dphi1, eval_res)
         dER_dalpha = gradient.dER_dalpha(G, alpha)
         # final gradient
@@ -108,7 +107,7 @@ def find_transformation(im1, im2, kernel_res, eval_res, c_sup, dim):
                                         points, c_sup, dim=dim)
     nxd = S.shape[1]
     alpha_0 = np.zeros(nxd)
-    
+
     # Start MATLAB engine
     eng = matlab.engine.start_matlab()
     # Convert image into suitable format for MATLAB
@@ -116,7 +115,7 @@ def find_transformation(im1, im2, kernel_res, eval_res, c_sup, dim):
     # Create the spline representation using BSrep.m
     spline_rep = eng.BSrep(img_mat)
 
-    
+
 
     print('REG -- Start optimization.')
     # optimization

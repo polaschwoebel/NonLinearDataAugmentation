@@ -44,24 +44,23 @@ def spline(img, phi, res, return_gradient=False):
     phi_y = phi[:,1]
 
     spline = interpolate.RectBivariateSpline(ly, lx, # coords once only
-                                                img.astype(np.float))
+                                             img.astype(np.float))
 
-    interpolated =  spline.ev(phi_y, phi_x, dx = 0,
-              dy = 0)
+    interpolated = spline.ev(
+        phi_y, phi_x, dx=0, dy=0)
     if not return_gradient:
         return interpolated
-    x_grad = spline.ev(phi_y, phi_x, dx = 1,
-                  dy = 0)
-
-    y_grad = spline.ev(phi_y, phi_x, dx = 0,
-                  dy = 1)
+    x_grad = spline.ev(
+        phi_y, phi_x, dx=1, dy=0)
+    y_grad = spline.ev(
+        phi_y, phi_x, dx=0, dy=1)
     all_grads = [x_grad, y_grad]
     gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in all_grads[::-1]])[0]
     block_diag = sparse.block_diag(gradient_array)
     return block_diag
 
 
-# Assumes 2D 
+# Assumes 2D
 def spline2(img, eng, spline_rep, phi, res):
     phi_x = matlab.double(phi[:,0].tolist())
     phi_y = matlab.double(phi[:,1].tolist())
@@ -69,7 +68,7 @@ def spline2(img, eng, spline_rep, phi, res):
     # Set zeros where NaN
     interpolation[np.isnan(interpolation)] = 0
     return interpolation
-    
+
 
 def interpolate_image(image, eng, spline_rep, phi_1, res):
 #    dim = phi_1.shape[-1]
@@ -82,7 +81,7 @@ def interpolate_image(image, eng, spline_rep, phi_1, res):
 
     #interpolated = ndimage.map_coordinates(image, coords, mode='nearest')
     interpolated = spline2(image, eng, spline_rep, phi_1, res)
-    
+
     return interpolated
 
 
