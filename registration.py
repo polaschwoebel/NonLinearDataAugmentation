@@ -120,7 +120,7 @@ def find_transformation(im1, im2, kernel_res, eval_res, c_sup, dim):
     print('REG -- Start optimization.')
     # optimization
     objective_function = (lambda alpha:
-                          compute_error_and_gradient(im1, eng, spline_rep, im2,
+                          compute_error_and_gradient2(im1, eng, spline_rep, im2,
                                                      points, kernel_grid, alpha, S,  kernel_res, eval_res, c_sup, dim))
     best_alpha = optimize.minimize(objective_function, alpha_0, jac=True, options={'disp':True})
 
