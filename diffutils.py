@@ -108,7 +108,5 @@ def get_G_from_S(S, kernel_res, eval_res, img_shape):
 # Apply transformation image at full resolution
 def apply_trafo_full(I1, alpha, kernels, c_sup, dim, eng, spline_rep):
     points = vector_fields.get_points_2d(I1, 1)
-    S = vector_fields.evaluation_matrix(lambda x1, x2: vector_fields.kernel(x1, x2, c_sup),
-                                        kernels, points, c_sup, dim=dim)
-    phi, _ = forward_euler.integrate(points, kernels, alpha, S, c_sup, steps=10)
+    phi, _ = forward_euler.integrate(points, kernels, alpha, c_sup, dim, steps=10)
     return registration.apply_transformation(I1, eng, spline_rep, points, phi, 1).reshape(I1.shape[0], I1.shape[1])

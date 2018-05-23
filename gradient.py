@@ -87,6 +87,12 @@ def dIm_dphi(img, eng, spline_rep, phi, res):
     dev1[np.isnan(dev1)] = 0
     dev2[np.isnan(dev2)] = 0
     gradients_all_dims = [dev2, dev1]
+    #npdevs = np.gradient(img)
+    #npdev1 = npdevs[0][phi[:,0], phi[:,1]]
+    #npdev2 = npdevs[1][phi[:,0], phi[:,1]]
+    #gradients_all_dims = [npdev2, npdev1]
+    #print(gradients_all_dims[0].shape)
+    #print(gradients_all_dims2[0].shape)
     #gradients_all_dims = np.gradient(interpolation.astype(float))
     gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
     block_diag = sparse.block_diag(gradient_array)

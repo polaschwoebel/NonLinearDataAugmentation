@@ -13,17 +13,15 @@ def interpolate_n_d(x_0, V_0, x_i):
     n, d = x_i.shape
     V_i = np.empty((n, d))
     for dim in range(d):
-        V_i[:, dim] = interpolate.griddata(x_0, V_0[:, dim], x_i, fill_value=0)
+        V_i[:, dim] = interpolate.griddata(x_0, V_0[:, dim], x_i, fill_value = 0)
     return V_i
 
 
-def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True, debug=False):
-    dim = x_0.shape[1]
-    V_i = vector_fields.make_V(S, alpha.reshape((alpha.size, -1)), dim)
+def integrate(x_0, kernels, alpha, c_sup, dim, steps=10, compute_gradient=True, debug=False):
+    S_i = vector_fields.evaluation_matrix(kernels, x_0, c_sup, dim = dim)
+    V_i = vector_fields.make_V(S_i, alpha.reshape((alpha.size, -1)), dim)
     x_i = x_0
-    #du_dalpha_i = S
-    S_i = S
-    dphi_dalpha_i = sparse.csc_matrix(S.shape)
+    dphi_dalpha_i = sparse.csc_matrix(S_i.shape)
     for i in range(steps):
         if compute_gradient:
             # gradient computations
@@ -38,8 +36,7 @@ def integrate(x_0, kernels, alpha, S, c_sup, steps=10, compute_gradient=True, de
         x_i = x_i + V_i/steps
 
         # Note: first S_i computation could be avoided since S_i is passed
-        S_i = vector_fields.evaluation_matrix(lambda x1, x2:
-                                              vector_fields.kernel(x1, x2, c_sup), kernels, x_i, c_sup, dim)
+        S_i = vector_fields.evaluation_matrix(kernels, x_i, c_sup, dim)
         V_i = vector_fields.make_V(S_i, alpha.reshape((alpha.size, -1)), dim)
 
         if debug:

@@ -69,7 +69,7 @@ def start_evaluation_matrix(function, kernels, points, c_sup, dim):
     return sparse.csc_matrix(full_S)
 
 
-def evaluation_matrix(function, kernels, points, c_sup, dim):
+def evaluation_matrix(kernels, points, c_sup, dim):
     dim = kernels.shape[1]
     vect_kernel = np.vectorize(dist_kernel)
     S = euclidean_distances(points, kernels)/c_sup
