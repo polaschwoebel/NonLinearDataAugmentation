@@ -1,57 +1,41 @@
 import numpy as np
-import vector_fields
-import forward_euler
-import diffutils as utils
-import gradient
 from scipy import optimize
 import matlab.engine
 import matlab
 
+import vector_fields
+import forward_euler
+import diffutils as utils
+import gradient
 
-def apply_transformation(img_source, eng, spline_rep, points, trafo, points_res, return_image=False):
-    dim = len(img_source.shape)
-    transformed_source_points = utils.interpolate_image(img_source, eng, spline_rep, trafo, points_res)
-    # bring points back into image shape - only for visualization
-    if return_image:
-        new_shape = utils.reconstruct_dimensions(img_source, points_res)
-        transformed_source_image = transformed_source_points.reshape(new_shape, order='F')
-        return transformed_source_image
-
-    else:
-        return transformed_source_points
-
-
-def E_D(img_source, eng, spline_rep, img_target, points, trafo, debug=False, eval_res=1):
-    dim = len(img_source.shape)
-    # note that we are actually applying the inverse transform,
-    source_points = apply_transformation(img_source, eng, spline_rep, points, trafo, eval_res, return_image=False)
-    #target_points = img_target[points[:,0], points[:,1]]
+# Computation of the dissimilarity error
+def E_D(im_source, im_target, trans_points, points, dim):
     if dim == 2:
-        target_points = img_target[points[:, 1], points[:, 0]]
+        target_points = im_target[points[:, 1], points[:, 0]]
     if dim == 3:
-        target_points = img_target[points[:, 1], points[:, 0], points[:, 2]]
-    return np.linalg.norm(source_points-target_points)**2
+        target_points = im_target[points[:, 1], points[:, 0], points[:, 2]]
+    return np.linalg.norm(trans_points - target_points) ** 2
 
-
-def E_R(G, alpha, sigma=1):
+# Computation of the regularization error
+def E_R(G, alpha):
     reg_norm = alpha.T.dot(G.dot(alpha))
     return reg_norm
 
-
-def compute_error_and_gradient(im1, eng, spline_rep, im2, points, kernels, 
-                               alpha, kernel_res, eval_res, c_sup, dim, 
-                               reg_weight):
-        print(alpha.shape)
-        print(kernels.shape)
-        print(points.shape)
-        phi_1, dphi_dalpha_1 = forward_euler.integrate(points, kernels, alpha, 
+def compute_error_and_gradient(im_source, eng, spline_rep, im_target, points, 
+                               kernels, alpha, kernel_res, eval_res, c_sup, 
+                               dim, reg_weight):
+        # Compute the integration using the Forward Euler method along with gradient
+        phi, dphi_dalpha = forward_euler.integrate(points, kernels, alpha, 
                                                        c_sup, dim, steps = 10)
         
         # Compute Gram matrix such that kernel_res = eval_res. Used for E_R
         G = vector_fields.evaluation_matrix(kernels, kernels, c_sup, dim)
         
+        trans_points = utils.interpolate_image(im_source, eng, spline_rep, phi, 
+                                               eval_res)
+        
         # Compute dissimilarity error
-        E_Data = E_D(im1, eng, spline_rep, im2, points, phi_1, eval_res = eval_res)
+        E_Data = E_D(im_source, im_target, trans_points, points, dim)
         print('REG -- Data term:', E_Data)
         
         # Compute regularization error
@@ -60,29 +44,31 @@ def compute_error_and_gradient(im1, eng, spline_rep, im2, points, kernels,
         E = E_Data + reg_weight * E_Reg
         
         ### GRADIENT ###
-        dIm_dphi1 = gradient.dIm_dphi(im1, eng, spline_rep, phi_1, eval_res)
-
-        dED_dphi1 = gradient.dED_dphit(im1, eng, spline_rep, im2, phi_1, points, dIm_dphi1, eval_res)
+        dIm_dphi1 = gradient.dIm_dphi(im_source, eng, spline_rep, phi, eval_res)
+        dED_dphi1 = gradient.dED_dphit(im_source, im_target, trans_points,
+                                       points, dIm_dphi1, dim)
         dER_dalpha = gradient.dER_dalpha(G, alpha)
-        final_gradient = gradient.error_gradient(dED_dphi1, dphi_dalpha_1, dER_dalpha)
+    
+        data_gradient = dED_dphi1.dot(dphi_dalpha).T
+        final_gradient = data_gradient + reg_weight * dER_dalpha
+        final_gradient = final_gradient.toarray().flatten()
         return E, final_gradient
 
 
-# final registration function
+# Find optimal alphas given 2 images using scipy optimizer
 def find_transformation(im1, im2, options):
     # Construct grid point and evaluation point structure
     if options["dim"] == 2:
-        kernel_grid = vector_fields.get_points_2d(im1, options["kernel_res"])
+        kernels = vector_fields.get_points_2d(im1, options["kernel_res"])
         points = vector_fields.get_points_2d(im1, options["eval_res"])
     else:
-        kernel_grid = vector_fields.get_points_3d(im1, options["kernel_res"])
+        kernels = vector_fields.get_points_3d(im1, options["kernel_res"])
         points = vector_fields.get_points_3d(im1, options["eval_res"])
 
-    m3 = points.shape[0]
-    n3 = kernel_grid.shape[0]
+    n = kernels.shape[0]
     
     # Initialize alpha
-    alpha_0 = np.zeros(options["dim"] * n3)
+    alpha_0 = np.zeros(options["dim"] * n)
 
     # Start MATLAB engine
     eng = matlab.engine.start_matlab()
@@ -94,7 +80,7 @@ def find_transformation(im1, im2, options):
     # Optimization
     objective_function = (lambda alpha:
                           compute_error_and_gradient(im1, eng, spline_rep, im2,
-                                                     points, kernel_grid, alpha, 
+                                                     points, kernels, alpha, 
                                                      options["kernel_res"], 
                                                      options["eval_res"], 
                                                      options["c_sup"], 
@@ -106,3 +92,4 @@ def find_transformation(im1, im2, options):
                                            "eps" : options["opt_eps"],
                                            "maxiter" : options["opt_maxiter"]})
     return opt_res["x"]
+

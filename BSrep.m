@@ -16,15 +16,30 @@ classdef BSrep < handle
         end
         
         function interpolation = eval_fun(BS, x, y)
-            interpolation = interp2(BS.rep, x, y);
+            % hacky solution to the padding problem
+            imgx = 28;
+            imgy = 28;
+            x(x>imgx) = 0;
+            y(y>imgy) = 0;
+            interpolation = interp2(BS.rep, x, y, 0);
         end
         
         function dev_interpolation = eval_dev1(BS, x, y)
-            dev_interpolation = interp2(BS.dev1, x, y);
+            % hacky solution to the padding problem
+            imgx = 28;
+            imgy = 28;
+            x(x>imgx) = 0;
+            y(y>imgy) = 0;
+            dev_interpolation = interp2(BS.dev1, x, y, 0);
         end
         
         function dev_interpolation = eval_dev2(BS, x, y)
-            dev_interpolation = interp2(BS.dev2, x, y);
+            % hacky solution to the padding problem
+            imgx = 28;
+            imgy = 26;
+            x(x>imgx) = 0;
+            y(y>imgy) = 0;
+            dev_interpolation = interp2(BS.dev2, x, y, 0);
         end
     end
 end
