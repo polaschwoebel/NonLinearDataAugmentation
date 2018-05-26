@@ -26,7 +26,8 @@ def reconstruct_dimensions(image, res):
 def interpolate_image(image, eng, spline_rep, phi, res):
     phi_x = matlab.double(phi[:,0].tolist())
     phi_y = matlab.double(phi[:,1].tolist())
-    interpolation = np.array(eng.eval_fun(spline_rep, phi_x, phi_y))
+    imres = image.shape[0]
+    interpolation = np.array(eng.eval_fun(spline_rep, phi_x, phi_y, imres))
     # Set zeros where NaN
     interpolation[np.isnan(interpolation)] = 0
     return interpolation
