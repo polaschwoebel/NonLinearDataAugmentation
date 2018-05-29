@@ -31,7 +31,7 @@ nr_images = test_data.shape[0]
 target_img = test_data[0,:,:,:]
 
 if __name__== "__main__":
-    for ix in range(nr_images):
+    for ix in range(7, nr_images):
         print('Processing test image', ix)
         moving_img = test_data[ix,:,:,:]
         moving_labels = test_labels[ix,:,:,:]

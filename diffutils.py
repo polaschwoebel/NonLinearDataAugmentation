@@ -35,4 +35,4 @@ def interpolate_image(image, eng, spline_rep, phi, res):
 def apply_trafo_full(I1, alpha, kernels, c_sup, dim, eng, spline_rep, eval_res):
     points = vector_fields.get_points_2d(I1, 1)
     phi, _ = forward_euler.integrate(points, kernels, alpha, c_sup, dim, steps=10)
-    return interpolate_image(I1, eng, spline_rep, phi, eval_res).reshape(I1.shape[0], I1.shape[1])
+    return interpolate_image(I1, eng, spline_rep, phi, eval_res).reshape(I1.shape, order='F')
