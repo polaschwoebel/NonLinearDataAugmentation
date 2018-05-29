@@ -50,8 +50,9 @@ def dIm_dphi(img, eng, spline_rep, phi, res):
     phi_y = matlab.double(phi[:,1].tolist())
     
     # Use spline representation of image to extract derivatives at phi
-    dev1 = np.array(eng.eval_dev1(spline_rep, phi_x, phi_y), dtype=np.float32)
-    dev2 = np.array(eng.eval_dev2(spline_rep, phi_x, phi_y), dtype=np.float32)
+    imres = img.shape[0]
+    dev1 = np.array(eng.eval_dev1(spline_rep, phi_x, phi_y, imres), dtype=np.float32)
+    dev2 = np.array(eng.eval_dev2(spline_rep, phi_x, phi_y, imres), dtype=np.float32)
     dev1[np.isnan(dev1)] = 0
     dev2[np.isnan(dev2)] = 0
     gradients_all_dims = [dev2, dev1]

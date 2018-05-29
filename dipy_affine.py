@@ -18,27 +18,27 @@ def transform(moving, affine_map):
     return transformed_image
 
 
-train = scio.loadmat('../miccai/miccai_train.mat')
+train = scio.loadmat('miccai_train.mat')
 train_data = train['data']
 train_labels = train['labels']
 nr_images = train_data.shape[0]
 target_img = train_data[0,:,:,:]
 
-test = scio.loadmat('../miccai/miccai_test.mat')
-test_data = test['data']
-test_labels = test['labels']
-nr_images = test_data.shape[0]
-target_img = test_data[0,:,:,:]
+#test = scio.loadmat('../miccai/miccai_test.mat')
+#test_data = test['data']
+#test_labels = test['labels']
+#nr_images = test_data.shape[0]
+#target_img = test_data[0,:,:,:]
 
 if __name__== "__main__":
-    for ix in range(7, nr_images):
+    for ix in range(nr_images):
         print('Processing test image', ix)
-        moving_img = test_data[ix,:,:,:]
-        moving_labels = test_labels[ix,:,:,:]
+        moving_img = train_data[ix,:,:,:]
+        moving_labels = train_labels[ix,:,:,:]
 
         affine_reg = register_affinely(target_img, moving_img)
         transformed_img = transform(moving_img, affine_reg)
         transformed_labels = transform(moving_labels, affine_reg)
-
-        np.save('../miccai/affinely_aligned/test_img/img_%s.npy' %ix, transformed_img, allow_pickle=False)
-        np.save('../miccai/affinely_aligned/test_labels/label_%s.npy' %ix, transformed_labels, allow_pickle=False)
+        print(transformed_img.shape)
+        #np.save('../miccai/affinely_aligned/test_img/img_%s.npy' %ix, transformed_img, allow_pickle=False)
+        #np.save('../miccai/affinely_aligned/test_labels/label_%s.npy' %ix, transformed_labels, allow_pickle=False)

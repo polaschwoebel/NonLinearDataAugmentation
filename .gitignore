@@ -7,3 +7,6 @@ __pycache__/
 test2.py
 zeroimg.mat
 affinetest.py
+up.bat
+miccai/*
+__MACOSX/*
