@@ -67,9 +67,10 @@ def filter_irrelevant_points(points, mask):
 def find_transformation(im1, im2, options):
     # Construct grid point and evaluation point structure
     if options["dim"] == 2:
-        kernels = vector_fields.get_points_2d(im1, options["kernel_res"])
+        kernels0 = vector_fields.get_points_2d(im1, options["kernel_res"])
         points0 = vector_fields.get_points_2d(im1, options["eval_res"])
-        points = filter_irrelevant_points(points0, options["mask"])
+        kernels = filter_irrelevant_points(kernels0, options["kernel_mask"])
+        points = filter_irrelevant_points(points0, options["eval_mask"])
         print("********** REG: ", np.all(points0 == points))
     else:
         kernels = vector_fields.get_points_3d(im1, options["kernel_res"])
