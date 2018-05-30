@@ -31,7 +31,7 @@ target_img = train_data[0,:,:,:]
 #target_img = test_data[0,:,:,:]
 
 if __name__== "__main__":
-    for ix in range(1):
+    for ix in range(nr_images):
         print('Processing test image', ix)
         moving_img = train_data[ix,:,:,:]
         moving_labels = train_labels[ix,:,:,:]
