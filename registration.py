@@ -40,7 +40,7 @@ def compute_error_and_gradient(im_source, eng, spline_rep, im_target, points,
         
         # Compute regularization error
         E_Reg = E_R(G, alpha)
-        print('REG -- Regularization term:', E_Reg)
+        print('REG -- Regularization term:', reg_weight * E_Reg)
         E = E_Data + reg_weight * E_Reg
         
         ### GRADIENT ###
@@ -55,12 +55,22 @@ def compute_error_and_gradient(im_source, eng, spline_rep, im_target, points,
         return E, final_gradient
 
 
+def filter_irrelevant_points(points, mask):
+    pl = points.tolist()
+    pl_new = []
+    for i in range(len(pl)):
+        if (mask[tuple(pl[i])]):
+            pl_new.append(pl[i])
+    return np.array(pl_new)
+
 # Find optimal alphas given 2 images using scipy optimizer
 def find_transformation(im1, im2, options):
     # Construct grid point and evaluation point structure
     if options["dim"] == 2:
         kernels = vector_fields.get_points_2d(im1, options["kernel_res"])
-        points = vector_fields.get_points_2d(im1, options["eval_res"])
+        points0 = vector_fields.get_points_2d(im1, options["eval_res"])
+        points = filter_irrelevant_points(points0, options["mask"])
+        print("********** REG: ", np.all(points0 == points))
     else:
         kernels = vector_fields.get_points_3d(im1, options["kernel_res"])
         points = vector_fields.get_points_3d(im1, options["eval_res"])

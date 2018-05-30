@@ -10,3 +10,7 @@ affinetest.py
 up.bat
 miccai/*
 __MACOSX/*
+MICCAI_data/*
+MICCAI_test/*
+test*
+*.npy
