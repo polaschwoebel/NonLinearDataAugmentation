@@ -14,3 +14,4 @@ MICCAI_data/*
 MICCAI_test/*
 test*
 *.npy
+*.zip
