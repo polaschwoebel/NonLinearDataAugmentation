@@ -32,7 +32,7 @@ def compute_error_and_gradient(im_source, eng, spline_rep, im_target, points,
         G = vector_fields.evaluation_matrix(kernels, kernels, c_sup, dim)
 
         trans_points = utils.interpolate_image(im_source, eng, spline_rep, phi,
-                                               eval_res)
+                                               eval_res, dim)
 
         # Compute dissimilarity error
         E_Data = E_D(im_source, im_target, trans_points, points, dim)
@@ -44,7 +44,7 @@ def compute_error_and_gradient(im_source, eng, spline_rep, im_target, points,
         E = E_Data + reg_weight * E_Reg
 
         ### GRADIENT ###
-        dIm_dphi1 = gradient.dIm_dphi(im_source, eng, spline_rep, phi, eval_res)
+        dIm_dphi1 = gradient.dIm_dphi(im_source, eng, spline_rep, phi, eval_res, dim)
         dED_dphi1 = gradient.dED_dphit(im_source, im_target, trans_points,
                                        points, dIm_dphi1, dim)
         dER_dalpha = gradient.dER_dalpha(G, alpha)
@@ -67,14 +67,15 @@ def filter_irrelevant_points(points, mask):
 def find_transformation(im1, im2, options):
     # Construct grid point and evaluation point structure
     if options["dim"] == 2:
-        kernels0 = vector_fields.get_points_2d(im1, options["kernel_res"])
-        points0 = vector_fields.get_points_2d(im1, options["eval_res"])
-        kernels = filter_irrelevant_points(kernel0, options["kernel_mask"])
-        points = filter_irrelevant_points(points0, options["eval_mask"])
-        print("********** REG: ", np.all(points0 == points))
+        kernels = vector_fields.get_points_2d(im1, options["kernel_res"])
+        points = vector_fields.get_points_2d(im1, options["eval_res"])
+        kernels = filter_irrelevant_points(kernels, options["kernel_mask"])
+        points = filter_irrelevant_points(points, options["eval_mask"])
     else:
         kernels = vector_fields.get_points_3d(im1, options["kernel_res"])
         points = vector_fields.get_points_3d(im1, options["eval_res"])
+        kernels = filter_irrelevant_points(kernels, options["kernel_mask"])
+        points = filter_irrelevant_points(points, options["eval_mask"])
 
     n = kernels.shape[0]
 
@@ -86,7 +87,7 @@ def find_transformation(im1, im2, options):
     # Convert image into suitable format for MATLAB
     img_mat = matlab.double(im1.tolist())
     # Create the spline representation using BSrep.m
-    spline_rep = eng.BSrep(img_mat)
+    spline_rep = eng.BSrep(img_mat, options["dim"])
 
     # Optimization
     objective_function = (lambda alpha:

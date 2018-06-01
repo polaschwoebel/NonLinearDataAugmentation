@@ -45,19 +45,38 @@ def next_dphi_dalpha(S, dv_dphit, prev_dphi_dalpha, step_size):
 
 # Computation of the image gradient. Returns the full Jacobian matrix of 
 # dimension 3m x 3m where m is number of evaluation points
-def dIm_dphi(img, eng, spline_rep, phi, res):
-    phi_x = matlab.double(phi[:,0].tolist())
-    phi_y = matlab.double(phi[:,1].tolist())
-    
-    # Use spline representation of image to extract derivatives at phi
-    imres = img.shape[0]
-    dev1 = np.array(eng.eval_dev1(spline_rep, phi_x, phi_y, imres), dtype=np.float32)
-    dev2 = np.array(eng.eval_dev2(spline_rep, phi_x, phi_y, imres), dtype=np.float32)
-    dev1[np.isnan(dev1)] = 0
-    dev2[np.isnan(dev2)] = 0
-    gradients_all_dims = [dev2, dev1]
-    gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
-    block_diag = sparse.block_diag(gradient_array)
+def dIm_dphi(img, eng, spline_rep, phi, res, dim):
+    if (dim == 2):
+        phi_x = matlab.double(phi[:,0].tolist())
+        phi_y = matlab.double(phi[:,1].tolist())
+        
+        # Use spline representation of image to extract derivatives at phi
+        imres = img.shape[0]
+        dev1 = np.array(eng.eval_dev12d(spline_rep, phi_x, phi_y, imres), dtype=np.float32)
+        dev2 = np.array(eng.eval_dev22d(spline_rep, phi_x, phi_y, imres), dtype=np.float32)
+        dev1[np.isnan(dev1)] = 0
+        dev2[np.isnan(dev2)] = 0
+        gradients_all_dims = [dev2, dev1]
+        gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
+        block_diag = sparse.block_diag(gradient_array)
+    else:
+        phi_x = matlab.double(phi[:,0].tolist())
+        phi_y = matlab.double(phi[:,1].tolist())
+        phi_z = matlab.double(phi[:,2].tolist())
+        # Use spline representation of image to extract derivatives at phi
+        (xres, yres, zres) = img.shape
+        dev1 = np.array(eng.eval_dev13d(spline_rep, phi_x, phi_y, phi_z ,
+                                        xres, yres, zres), dtype=np.float32)
+        dev2 = np.array(eng.eval_dev23d(spline_rep, phi_x, phi_y, phi_z ,
+                                        xres, yres, zres), dtype=np.float32)
+        dev3 = np.array(eng.eval_dev33d(spline_rep, phi_x, phi_y, phi_z ,
+                                        xres, yres, zres), dtype=np.float32)
+        dev1[np.isnan(dev1)] = 0
+        dev2[np.isnan(dev2)] = 0
+        dev3[np.isnan(dev3)] = 0
+        gradients_all_dims = [dev2, dev1, dev3]
+        gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
+        block_diag = sparse.block_diag(gradient_array)
     return block_diag
 
 def dED_dphit(im_source, im_target, trans_points, points, dIm1_dphi1, dim):

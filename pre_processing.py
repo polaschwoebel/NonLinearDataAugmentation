@@ -3,28 +3,28 @@ import numpy as np
 import scipy.ndimage.morphology as scm
 import os
 from scipy.io import loadmat, savemat
-from dipy.align import imaffine, transforms
+#from dipy.align import imaffine, transforms
 
 #%%
 #### PRE PROCESSING ####
 
 # Load images/labels and find common dimensions such that all images are stored
 # in a single tensor, and all labels are stored in a single tensor
-def align_dimensions(data_path, label_path):    
+def align_dimensions(data_path, label_path):
     data_files = os.listdir(data_path)
     max_depth = 0
-    
+
     print("ALIGN DIMENSIONS: processing images")
     for file in data_files:
         (h, w, mat_depth) = loadmat(data_path + file)["data"].shape
         max_depth = mat_depth if mat_depth > max_depth else max_depth
-    
+
     data = np.zeros((len(data_files), h, w, max_depth), dtype = np.uint16)
     for i in range(0, len(data_files)):
         file = data_files[i]
         mat = loadmat(data_path + file)["data"]
         data[i, :, :, :mat.shape[2]] = mat
-    
+
     print("ALIGN DIMENSIONS: processing labels")
     label_files = os.listdir(label_path)
     labels = np.zeros((len(label_files), h, w, max_depth), dtype = np.uint8)
@@ -32,7 +32,7 @@ def align_dimensions(data_path, label_path):
         file = label_files[i]
         mat = loadmat(label_path + file)["label"]
         labels[i, :, :, :mat.shape[2]] = mat
-    
+
     return (data, labels)
 
 # Find non-background mask for single image
@@ -81,7 +81,7 @@ def transform(moving, affine_map):
     transformed_image = affine_map.transform(moving, interp='nearest')
     return transformed_image
 
-# Affinely aligns all images in data to the first image in data. 
+# Affinely aligns all images in data to the first image in data.
 # Transforms corresponding labels as well
 def affine_align_all_data(data, labels):
     aligned_data = np.zeros_like(data)
@@ -118,7 +118,7 @@ def run_whole_preprocessing(data_path, labels_path):
 def find_relevant_points_mask(labels, dilations):
     mask = np.zeros_like(labels[0])
     for i in range(len(labels)):
-        m = scm.binary_dilation(labels[i], iterations = dilations)
+        m = scm.binary_dilation(labels[i], iterations=dilations)
         m = scm.binary_fill_holes(m)
         mask = np.logical_or(mask, m)
     return m.astype(np.uint8)

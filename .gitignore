@@ -15,3 +15,4 @@ MICCAI_test/*
 test*
 *.npy
 *.zip
+*.bat*
