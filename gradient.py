@@ -15,7 +15,9 @@ def dv_dphit(phi_t, kernels, alpha, c_sup, dim):
     dist_smaller_1 = np.where(distances < 1)
 
     # Compute the kernel derivative w.r.t. evaluation points
-    Kdev = np.zeros((kernels.shape[0], dim * phi_t.shape[0]))
+    #Kdev = np.zeros((kernels.shape[0], dim * phi_t.shape[0]))
+    Kdev = sparse.lil_matrix((kernels.shape[0], dim * phi_t.shape[0]),
+                             dtype = np.float32)
     for i in range(len(dist_smaller_1[0])):
         
         # Retrieve indices for non-zero kernel derivative
@@ -28,7 +30,8 @@ def dv_dphit(phi_t, kernels, alpha, c_sup, dim):
         / c_sup) ** 3 * (-20 / (c_sup ** 2))
 
     # Compute velocity derivative by multiplying alpha
-    Vdev = sparse.csc_matrix.dot(sparse.csc_matrix(alpha), sparse.csc_matrix(Kdev))
+    #Vdev = sparse.csc_matrix.dot(sparse.csc_matrix(alpha), sparse.csc_matrix(Kdev))
+    Vdev = sparse.csc_matrix.dot(sparse.csc_matrix(alpha), Kdev.tocsc())
     Vdev = Vdev.tolil()
     Vdev_full = sparse.lil_matrix((dim * m, dim * m))
     for i in range(m):

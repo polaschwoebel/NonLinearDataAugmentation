@@ -25,7 +25,8 @@ def dist_kernel(r):
 def blowup_S(S, dim):
     (m, n) = S.shape
     if dim == 3:
-        S_full = np.zeros((3 * m, 3 * n))
+        #S_full = np.zeros((3 * m, 3 * n))
+        S_full = sparse.lil_matrix((3 * m, 3 * n), dtype = np.float32)
         S_full[0::3, 0::3] = S
         S_full[1::3, 1::3] = S
         S_full[2::3, 2::3] = S
@@ -33,7 +34,7 @@ def blowup_S(S, dim):
         S_full = np.zeros((2 * m, 2 * n))
         S_full[0::2, 0::2] = S
         S_full[1::2, 1::2] = S
-    return S_full
+    return S_full.tocsc()
 
 # Create evaluation matrix given kernel centers (grid points), evaluation points
 # and kernel support
@@ -50,7 +51,8 @@ def evaluation_matrix(kernels, points, c_sup, dim):
     S[non_zero_indices] = vect_kernel(S[non_zero_indices])
     S[np.where(S == -1)] = 0
     full_S = blowup_S(S, dim)
-    return sparse.csc_matrix(full_S)
+    #return sparse.csc_matrix(full_S)
+    return full_S
 
 # Create velocity field by weighing kernels by alphas
 def make_V(S, alpha, d):
