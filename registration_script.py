@@ -1,19 +1,19 @@
 import numpy as np
-import pre_processing
 import registration
+import pre_processing
 import diffutils as utils
 import time
 
 
 def main():
     start = time.time()
-    affine_images_path = '../MICCAI_data/train_ims_aligned_noskull.npy'
-    affine_labels_path = '../MICCAI_data/train_ims_aligned_noskull.npy'
+    affine_images_path = 'MICCAI_data/train_ims_aligned_noskull.npy'
+    affine_labels_path = 'MICCAI_data/train_ims_aligned_noskull.npy'
     affine_images = np.load(affine_images_path)
     affine_labels = np.load(affine_labels_path)
 
-    im1 = affine_images[0, :, :, :]
-    im2 = affine_images[5, :, :, :]
+    im1 = affine_images[0, :, :, 100]
+    im2 = affine_images[5, :, :, 100]
 
     labels1 = affine_labels[0, :, :, :]
     labels2 = affine_labels[5, :, :, :]
