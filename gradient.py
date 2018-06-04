@@ -19,14 +19,14 @@ def dv_dphit(phi_t, kernels, alpha, c_sup, dim):
     Kdev = sparse.lil_matrix((kernels.shape[0], dim * phi_t.shape[0]),
                              dtype = np.float32)
     for i in range(len(dist_smaller_1[0])):
-        
+
         # Retrieve indices for non-zero kernel derivative
         m_c = dist_smaller_1[0][i]
         n_c = dist_smaller_1[1][i]
         diff = phi_t[m_c, :] - kernels[n_c, :]
-        
+
         # Analytically derived Wendland kernel derivative
-        Kdev[n_c ,dim * m_c : dim * m_c + dim] = diff * (1 - np.linalg.norm(diff) 
+        Kdev[n_c ,dim * m_c : dim * m_c + dim] = diff * (1 - np.linalg.norm(diff)
         / c_sup) ** 3 * (-20 / (c_sup ** 2))
 
     # Compute velocity derivative by multiplying alpha
@@ -35,7 +35,7 @@ def dv_dphit(phi_t, kernels, alpha, c_sup, dim):
     Vdev = Vdev.tolil()
     Vdev_full = sparse.lil_matrix((dim * m, dim * m))
     for i in range(m):
-        Vdev_full[i * dim : (i+1) * dim, i * dim : (i+1) * dim] = Vdev[:, 
+        Vdev_full[i * dim : (i+1) * dim, i * dim : (i+1) * dim] = Vdev[:,
                   i * dim : (i+1) * dim]
     return Vdev_full
 
@@ -46,13 +46,13 @@ def next_dphi_dalpha(S, dv_dphit, prev_dphi_dalpha, step_size):
     dphi_dalpha = (identity + 1/step_size * dv_dphit).dot(prev_dphi_dalpha) + 1/step_size * S
     return dphi_dalpha
 
-# Computation of the image gradient. Returns the full Jacobian matrix of 
+# Computation of the image gradient. Returns the full Jacobian matrix of
 # dimension 3m x 3m where m is number of evaluation points
 def dIm_dphi(img, eng, spline_rep, phi, res, dim):
     if (dim == 2):
         phi_x = matlab.double(phi[:,0].tolist())
         phi_y = matlab.double(phi[:,1].tolist())
-        
+
         # Use spline representation of image to extract derivatives at phi
         imres = img.shape[0]
         dev1 = np.array(eng.eval_dev12d(spline_rep, phi_x, phi_y, imres), dtype=np.float32)
@@ -93,4 +93,3 @@ def dED_dphit(im_source, im_target, trans_points, points, dIm1_dphi1, dim):
 def dER_dalpha(G, alpha):
     alpha = alpha.reshape((-1, 1))
     return sparse.csc_matrix(2 * G.dot(alpha))
-
