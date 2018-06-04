@@ -3,12 +3,12 @@ from scipy import sparse
 import gradient
 import vector_fields
 
-def enforce_boundaries(phi, img_shape):
+def enforce_boundaries(phi, img_shape, dim):
     # make sure we are inside the image
     phi[:, 1] = phi[:, 1].clip(0, img_shape[1])
     phi[:, 0] = phi[:, 0].clip(0, img_shape[0])
     # 3d case
-    if len(img_shape) == 3:
+    if dim == 3:
         phi[:, 2] = phi[:, 2].clip(0, img_shape[2])
     return phi
 
@@ -34,7 +34,7 @@ def integrate(x_0, kernels, alpha, c_sup, dim, steps = 10, compute_gradient = Tr
     img_shape = []
     for d in range(dim):
         img_shape.append(max(x_0[:, d]))
-    x_1 = enforce_boundaries(x_i, img_shape)
+    x_1 = enforce_boundaries(x_i, img_shape, dim)
 
     if compute_gradient:
         return x_1, dphi_dalpha_i

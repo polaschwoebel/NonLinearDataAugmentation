@@ -100,6 +100,17 @@ def padding_to_normalized_background(data):
         data2[i,:,:,:][data2[i,:,:,:] == 0] = un[0]
     return data2
 
+def run_whole_preprocessing(data_path, labels_path):
+    (data, labels) = align_dimensions(data_path, labels_path)
+    
+    data = remove_skulls(data, labels)
+    data = normalize_intensity(data)
+    
+    (data, labels) = affine_align_all_data(data, labels)
+    data = padding_to_normalized_background(data)
+    return (data, labels)
+
+
 #### REGISTRATION ####
 
 # Finds mask that contains all non-background pixels over all images.
