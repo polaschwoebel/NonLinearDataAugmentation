@@ -47,10 +47,10 @@ def main():
 
     alpha = registration.find_transformation(im1, im2, options)
     end = time.time()
-    print('Registration done. Time:', end - start)
+    print('Registration done. Time (mins):', (end - start)/60)
 
     np.save('alpha_0_5.npy', alpha)
-    reconstructed = utils.apply_trafo_full(im1, im2, options)
+    reconstructed = utils.apply_trafo_full(im1, alpha, options)
     np.save('reconstructed_0_5.npy', reconstructed)
 
 

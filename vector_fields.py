@@ -42,11 +42,11 @@ def evaluation_matrix(kernels, points, c_sup, dim):
     dim = kernels.shape[1]
     vect_kernel = np.vectorize(dist_kernel)
     S = euclidean_distances(points, kernels) / c_sup
-    
+
     # Mark entries with 0 kernel support
     S[np.where(S > 1)] = -1
     non_zero_indices = np.where(S >= 0)
-    
+
     # Evaluate kernel at points within support
     S[non_zero_indices] = vect_kernel(S[non_zero_indices])
     S[np.where(S == -1)] = 0
@@ -57,5 +57,6 @@ def evaluation_matrix(kernels, points, c_sup, dim):
 # Create velocity field by weighing kernels by alphas
 def make_V(S, alpha, d):
     alpha = alpha.flatten()
+    print(alpha.shape, S.shape)
     lmda = S.dot(alpha)
     return lmda.reshape(-1, d)

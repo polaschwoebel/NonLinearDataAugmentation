@@ -4,6 +4,7 @@ import forward_euler
 import vector_fields
 import matlab.engine
 import matlab
+import registration
 
 
 def save_matrix(matrix, file_name):
@@ -51,11 +52,22 @@ def apply_trafo_full(im1, alpha, options):
     img_mat = matlab.double(im1.tolist())
     spline_rep = eng.BSrep(img_mat, options["dim"])
 
-    points = vector_fields.get_points_2d(im1, 1)
-    kernels = vector_fields.get_points_2d(im1, options['kernel_res'])
+    dim = options['dim']
+    if dim == 2:
+        points = vector_fields.get_points_2d(im1, options['points_res'])
+        kernels = vector_fields.get_points_2d(im1, options['kernel_res'])
+        points = registration.filter_irrelevant_points(points, options['eval_mask'])
+        kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
+    else:
+        points = vector_fields.get_points_3d(im1, options['eval_res'])
+        kernels = vector_fields.get_points_3d(im1, options['kernel_res'])
+        points = registration.filter_irrelevant_points(points, options['eval_mask'])
+        kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
 
-    phi= forward_euler.integrate(points, kernels, alpha, options['c_sup'], 
-                                 options['dim'], steps=10, 
+    print('integrating')
+    phi= forward_euler.integrate(points, kernels, alpha, options['c_sup'],
+                                 options['dim'], steps=10,
                                  compute_gradient = False)
-    return interpolate_image(im1, eng, spline_rep, phi, 
+    print('interpolating')
+    return interpolate_image(im1, eng, spline_rep, phi,
                              options['eval_res']).reshape(im1.shape, order='F')
