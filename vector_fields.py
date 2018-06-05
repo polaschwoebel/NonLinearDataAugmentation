@@ -57,6 +57,5 @@ def evaluation_matrix(kernels, points, c_sup, dim):
 # Create velocity field by weighing kernels by alphas
 def make_V(S, alpha, d):
     alpha = alpha.flatten()
-    print(alpha.shape, S.shape)
     lmda = S.dot(alpha)
     return lmda.reshape(-1, d)

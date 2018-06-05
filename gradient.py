@@ -213,11 +213,11 @@ def dv_dphit(phi_t, kernels, alpha, c_sup, dim):
     return dv_dphit_diag
 
 def dv_dphit_old_parallel(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial jacobian") in the paper
-    start = time.time()
+    #start = time.time()
     dim = kernels.shape[1]
     alpha = alpha.reshape((-1,dim))
     distances = euclidean_distances(phi_t, kernels)/c_sup
-    print("GRAD -- euc dist ", (time.time() - start) / 60)
+    #print("GRAD -- euc dist ", (time.time() - start) / 60)
     # m is number of points, n number of kernels
     m, n = distances.shape
     print(m, n)
@@ -232,20 +232,19 @@ def dv_dphit_old_parallel(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial 
     kernels_dump = load("kernels", mmap_mode = "r")
     alpha_dump = load("alpha", mmap_mode = "r")
      # computation of the sum of the kernel derivatives
-    start_loop = time.time()
+    #start_loop = time.time()
     Parallel(n_jobs=24, backend = "threading")(delayed(compute_block)(phi_t_dump, kernels_dump,
         alpha_dump, dv_dphit_diag, distances[i,:], c_sup, dim, i) for i in range(m))
-    print("GRAD -- for loop done", (time.time() - start_loop) / 60)
+    #print("GRAD -- for loop done", (time.time() - start_loop) / 60)
     os.remove("alpha")
     os.remove("phi_t")
     os.remove("kernels")
     before_res = time.time()
     #result = sparse.block_diag(dv_dphit_diag)
-    #print(result.shape)
     #print("GRAD -- made into sparse", (time.time() - before_res) / 60)
-    print("GRAD -- total", (time.time() - start) / 60)
+    #print("GRAD -- total", (time.time() - start) / 60)
      #return result
-    return dv_dphit_diag
+    return sparse.csc_matrix(dv_dphit_diag)
 
 
 def compute_block(phi_t, kernels, alpha, dv_dphit_diag, distances, c_sup, dim, i):

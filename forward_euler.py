@@ -20,9 +20,7 @@ def integrate(x_0, kernels, alpha, c_sup, dim, steps = 10, compute_gradient = Tr
 
     for i in range(steps):
         if compute_gradient:
-            print('FE -- compute dv_dphit_i')
-            dv_dphit_i = gradient.dv_dphit_old_parallel(x_i, kernels, alpha, c_sup, dim)
-            print('FE -- compute dphit_dalpha_i')
+            dv_dphit_i = gradient.dv_dphit(x_i, kernels, alpha, c_sup, dim)
             dphi_dalpha_i = gradient.next_dphi_dalpha(S_i, dv_dphit_i, dphi_dalpha_i, steps)
 
         # Make a step

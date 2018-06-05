@@ -17,7 +17,7 @@ classdef BSrep < handle
             BS.dev1 = bspartial(BS.rep, 1);
             BS.dev2 = bspartial(BS.rep, 2);
 			if (dim == 3)
-				BS.dev3 = bspartial(BS.rep, 3)
+				BS.dev3 = bspartial(BS.rep, 3);
 			end
         end
 
