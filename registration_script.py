@@ -29,8 +29,6 @@ def main():
         labels1 = np.load('../MICCAI_data/lowres/L1_low.npy')
         labels2 = np.load('../MICCAI_data/lowres/L5_low.npy')
 
-
-
     options = {}
     options['c_sup'] = 16
     options['kernel_res'] = 8

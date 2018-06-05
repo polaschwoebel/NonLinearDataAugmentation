@@ -53,16 +53,17 @@ def apply_trafo_full(im1, alpha, options):
     spline_rep = eng.BSrep(img_mat, options["dim"])
 
     dim = options['dim']
+    print('getting points')
     if dim == 2:
-        points = vector_fields.get_points_2d(im1, options['points_res'])
+        points = vector_fields.get_points_2d(im1, 1)
         kernels = vector_fields.get_points_2d(im1, options['kernel_res'])
-        points = registration.filter_irrelevant_points(points, options['eval_mask'])
-        kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
+        #points = registration.filter_irrelevant_points(points, options['eval_mask'])
+        #kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
     else:
-        points = vector_fields.get_points_3d(im1, options['eval_res'])
+        points = vector_fields.get_points_3d(im1, 1)
         kernels = vector_fields.get_points_3d(im1, options['kernel_res'])
-        points = registration.filter_irrelevant_points(points, options['eval_mask'])
-        kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
+        #points = registration.filter_irrelevant_points(points, options['eval_mask'])
+        #kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
 
     print('integrating')
     phi= forward_euler.integrate(points, kernels, alpha, options['c_sup'],
@@ -70,4 +71,4 @@ def apply_trafo_full(im1, alpha, options):
                                  compute_gradient = False)
     print('interpolating')
     return interpolate_image(im1, eng, spline_rep, phi,
-                             options['eval_res']).reshape(im1.shape, order='F')
+                             options['eval_res'], options["dim"]).reshape(im1.shape, order='F')
