@@ -26,7 +26,7 @@ def compute_error_and_gradient(im_source, eng, spline_rep, im_target, points,
                                dim, reg_weight):
         # Compute the integration using the Forward Euler method along with gradient
         phi, dphi_dalpha = forward_euler.integrate(points, kernels, alpha,
-                                                   c_sup, dim, steps=10)
+                                                   c_sup, dim, steps=5)
 
         # Compute Gram matrix such that kernel_res = eval_res. Used for E_R
         G = vector_fields.evaluation_matrix(kernels, kernels, c_sup, dim)

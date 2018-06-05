@@ -31,7 +31,7 @@ def blowup_S(S, dim):
         S_full[1::3, 1::3] = S
         S_full[2::3, 2::3] = S
     else:
-        S_full = np.zeros((2 * m, 2 * n))
+        S_full = sparse.lil_matrix((2 * m, 2 * n), dtype = np.float32)
         S_full[0::2, 0::2] = S
         S_full[1::2, 1::2] = S
     return S_full.tocsc()

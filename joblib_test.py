@@ -8,6 +8,40 @@ import os
 import shutil 
 
 #%%
+import numpy as np
+from scipy import sparse
+
+#%%
+m = 9
+dim = 3
+#a1 = np.array([1,2,3])
+#a2 = np.array([4,5,6])
+#a3 = np.array([7,8,9])
+a1 = np.random.rand(3,3)
+a2 = np.random.rand(3,3)
+a3 = np.random.rand(3,3)
+
+
+gradients_all_dims = [a1, a2, a3]
+gradient_array = np.dstack([dim_arr.flatten(order='F') for dim_arr in gradients_all_dims])[::-1][0]
+bd = sparse.block_diag(gradient_array)
+
+d = sparse.coo_matrix((m, dim * m))
+d.data = np.concatenate((a1.flatten(order='F'),a2.flatten(order='F'),a3.flatten(order='F')), axis = 0)
+row = np.arange(m)
+col = np.arange(0, 3 * m, dim)
+d.row = np.concatenate((row, row, row))
+d.col = np.concatenate((col, col + 1, col + 2), axis = 0)
+
+sum(sum(d.toarray() - bd.toarray()))
+#%%
+def stride_insert(m, ar1, ar2, ar3):
+    (q, w) = m.strides
+    
+
+
+
+#%%
 def sum_row(inputt, output, i):
     sum_ = inputt[i, :].sum()
     output[i] = sum_

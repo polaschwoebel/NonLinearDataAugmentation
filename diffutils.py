@@ -58,4 +58,4 @@ def apply_trafo_full(im1, alpha, options):
                                  options['dim'], steps=10, 
                                  compute_gradient = False)
     return interpolate_image(im1, eng, spline_rep, phi, 
-                             options['eval_res']).reshape(im1.shape, order='F')
+                             options['eval_res'], options["dim"]).reshape(im1.shape, order='F')
