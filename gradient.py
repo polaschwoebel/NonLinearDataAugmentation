@@ -135,6 +135,58 @@ def dv_dphit_old(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial jacobian"
      #return result
      return dv_dphit_diag
 
+
+def dv_dphit_old_parallel(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial jacobian") in the paper
+    start = time.time()
+    dim = kernels.shape[1]
+    alpha = alpha.reshape((-1,dim))
+    distances = euclidean_distances(phi_t, kernels)/c_sup
+    print("GRAD -- euc dist ", (time.time() - start) / 60)
+    # m is number of points, n number of kernels
+    m, n = distances.shape
+    print(m, n)
+    #dv_dphit_diag = np.empty((m, dim, dim))
+    dv_dphit_diag = np.memmap("dv_dphit_diag", dtype = np.float32,
+                         shape = (dim*m, dim*m),
+                         mode='w+')
+    dump(np.copy(phi_t), "phi_t")
+    dump(np.copy(kernels), "kernels")
+    dump(np.copy(alpha), "alpha")
+    phi_t_dump = load("phi_t", mmap_mode = "r")
+    kernels_dump = load("kernels", mmap_mode = "r")
+    alpha_dump = load("alpha", mmap_mode = "r")
+     # computation of the sum of the kernel derivatives
+    start_loop = time.time()
+    Parallel(n_jobs=24, backend = "threading")(delayed(compute_block)(phi_t_dump, kernels_dump,
+        alpha_dump, dv_dphit_diag, distances[i,:], c_sup, dim, i) for i in range(m))
+    print("GRAD -- for loop done", (time.time() - start_loop) / 60)
+    os.remove("alpha")
+    os.remove("phi_t")
+    os.remove("kernels")
+    before_res = time.time()
+    #result = sparse.block_diag(dv_dphit_diag)
+    #print(result.shape)
+    #print("GRAD -- made into sparse", (time.time() - before_res) / 60)
+    print("GRAD -- total", (time.time() - start) / 60)
+     #return result
+    return dv_dphit_diag
+
+
+def compute_block(phi_t, kernels, alpha, dv_dphit_diag, distances, c_sup, dim, i):
+    phi_t_i = phi_t[i]
+    # get those kernel points where distance is smaller than 1, so kernel > 0
+    dist_smaller_1 = np.where(distances < 1)[0]
+    alpha_indices = np.array([j for j in list(dist_smaller_1)])
+    sm = 0
+    factor = -20/(c_sup**2)
+    # compute sum over all alpha+kernels that have a nonzero contribution
+    for alpha_idx in alpha_indices:
+        diff = phi_t_i - kernels[alpha_idx]
+        sm += alpha[alpha_idx].reshape((dim,1)).dot(diff.reshape((1,dim))) * (1 - np.linalg.norm(diff)/c_sup)**3
+    dv_dphit_i = factor * sm
+    dv_dphit_diag[dim*i : dim*i + dim, dim*i : dim*i + dim] = dv_dphit_i
+
+
 # Compute dphi_dalpha for next Forward Euler step by the recursive definition
 def next_dphi_dalpha(S, dv_dphit, prev_dphi_dalpha, step_size):
     m, n = S.shape
