@@ -107,7 +107,6 @@ def dv_dphit_old(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial jacobian"
      print("GRAD -- euc dist ", (time.time() - start) / 60)
      # m is number of points, n number of kernels
      m, n = distances.shape
-     print(m, n)
      #dv_dphit_diag = np.empty((m, dim, dim))
      dv_dphit_diag = sparse.lil_matrix((dim*m, dim*m))
      # computation of the sum of the kernel derivatives
