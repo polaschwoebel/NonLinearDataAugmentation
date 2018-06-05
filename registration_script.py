@@ -1,28 +1,41 @@
+import matlab.engine
 import numpy as np
-import pre_processing
 import registration
+import pre_processing
 import diffutils as utils
 import time
 
+debug = True
 
 def main():
     start = time.time()
-    affine_images_path = '../MICCAI_data/train_ims_aligned_noskull.npy'
-    affine_labels_path = '../MICCAI_data/train_ims_aligned_noskull.npy'
-    affine_images = np.load(affine_images_path)
-    affine_labels = np.load(affine_labels_path)
+    if not debug:
+        # Martin
+        affine_images_path = 'MICCAI_data/train_ims_aligned_noskull.npy'
+        affine_labels_path = 'MICCAI_data/train_ims_aligned_noskull.npy'
+        # Pola
+        affine_images = np.load(affine_images_path)
+        affine_labels = np.load(affine_labels_path)
 
-    im1 = affine_images[0, :, :, :]
-    im2 = affine_images[5, :, :, :]
+        im1 = affine_images[0, :, :, 100]
+        im2 = affine_images[5, :, :, 100]
+        labels1 = affine_labels[0, :, :, :]
+        labels2 = affine_labels[5, :, :, :]
 
-    labels1 = affine_labels[0, :, :, :]
-    labels2 = affine_labels[5, :, :, :]
+    if debug:
+        # lowres for debugging
+        im1 = np.load('../MICCAI_data/lowres/I1_low.npy')
+        im2 = np.load('../MICCAI_data/lowres/I5_low.npy')
+        labels1 = np.load('../MICCAI_data/lowres/L1_low.npy')
+        labels2 = np.load('../MICCAI_data/lowres/L5_low.npy')
+
+
 
     options = {}
     options['c_sup'] = 16
     options['kernel_res'] = 8
     options['eval_res'] = 2
-    options['dim'] = 2
+    options['dim'] = 3
     options['opt_eps'] = 0.02
     options['opt_tol'] = 0.01
     options['reg_weight'] = 0.002

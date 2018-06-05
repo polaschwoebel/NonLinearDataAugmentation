@@ -10,7 +10,7 @@ classdef BSrep < handle
             % Martin:
             %addpath('C:\Program Files\MATLAB\R2017a\toolbox\bsarray');
             % Pola:
-            %addpath('/Users/polaschwoebel/Documents/MATLAB/bsarray');
+            %ddpath('/Users/polasachwoebel/Documents/MATLAB/bsarray');
             % server:
             addpath('bsarray');
             BS.rep = bsarray(I);
@@ -33,7 +33,7 @@ classdef BSrep < handle
 			z(z>shape2) = 0;
             interpolation = interp3(BS.rep, x, y, z, 0);
         end
-		
+
         function dev_interpolation = eval_dev12d(BS, x, y, imres)
             % hacky solution to the padding problem
             x(x>imres) = 0;
@@ -48,14 +48,14 @@ classdef BSrep < handle
 			z(z>shape2) = 0;
             dev_interpolation = interp3(BS.dev1, x, y, z, 0);
         end
-		
+
         function dev_interpolation = eval_dev22d(BS, x, y, imres)
             % hacky solution to the padding problem
             x(x>imres) = 0;
             y(y>imres) = 0;
             dev_interpolation = interp2(BS.dev2, x, y, 0);
         end
-		
+
 		function dev_interpolation = eval_dev23d(BS, x, y, z, shape0, shape1, shape2)
             % hacky solution to the padding problem
             x(x>shape0) = 0;
@@ -63,7 +63,7 @@ classdef BSrep < handle
 			z(z>shape2) = 0;
             dev_interpolation = interp3(BS.dev2, x, y, z, 0);
         end
-		
+
 		function dev_interpolation = eval_dev33d(BS, x, y, z, shape0, shape1, shape2)
             % hacky solution to the padding problem
             x(x>shape0) = 0;

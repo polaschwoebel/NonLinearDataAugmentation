@@ -1,7 +1,7 @@
 import numpy as np
-from scipy import optimize
 import matlab.engine
 import matlab
+from scipy import optimize
 
 import vector_fields
 import forward_euler
