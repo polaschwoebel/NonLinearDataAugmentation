@@ -17,3 +17,5 @@ test*
 *.npy
 *.zip
 *.bat*
+inspect_results.py
+*~
