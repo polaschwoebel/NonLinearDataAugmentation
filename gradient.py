@@ -11,18 +11,17 @@ from joblib import load, dump
 import os
 
 
-def dv_dphit_old_parallel(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial jacobian") in the paper
-    #start = time.time()
+def dv_dphit_parallel(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial jacobian") in the paper
+    start = time.time()
     dim = kernels.shape[1]
     alpha = alpha.reshape((-1,dim))
     distances = euclidean_distances(phi_t, kernels)/c_sup
     #print("GRAD -- euc dist ", (time.time() - start) / 60)
     # m is number of points, n number of kernels
     m, n = distances.shape
-    #print(m, n)
     #dv_dphit_diag = np.empty((m, dim, dim))
     dv_dphit_diag = np.memmap("dv_dphit_diag", dtype = np.float32,
-                         shape = (dim*m, dim*m),
+                         shape=(dim*m, dim*m),
                          mode='w+')
     dump(np.copy(phi_t), "phi_t")
     dump(np.copy(kernels), "kernels")
@@ -30,15 +29,14 @@ def dv_dphit_old_parallel(phi_t, kernels, alpha, c_sup, dim): # D_phi ("spatial 
     phi_t_dump = load("phi_t", mmap_mode = "r")
     kernels_dump = load("kernels", mmap_mode = "r")
     alpha_dump = load("alpha", mmap_mode = "r")
-     # computation of the sum of the kernel derivatives
+    # computation of the sum of the kernel derivatives
     #start_loop = time.time()
-    Parallel(n_jobs=-1, backend = "threading")(delayed(compute_block)(phi_t_dump, kernels_dump,
+    Parallel(n_jobs=24, backend = "threading")(delayed(compute_block)(phi_t_dump, kernels_dump,
         alpha_dump, dv_dphit_diag, distances[i,:], c_sup, dim, i) for i in range(m))
     #print("GRAD -- for loop done", (time.time() - start_loop) / 60)
     os.remove("alpha")
     os.remove("phi_t")
     os.remove("kernels")
-    before_res = time.time()
     return sparse.csc_matrix(dv_dphit_diag)
 
 

@@ -10,6 +10,8 @@ import forward_euler
 import diffutils as utils
 import gradient
 
+import time
+
 # Computation of the dissimilarity error
 def E_D(im_source, im_target, trans_points, points, dim):
     if dim == 2:
@@ -79,6 +81,7 @@ def filter_irrelevant_points(points, mask):
 
 # Find optimal alphas given 2 images using scipy optimizer
 def find_transformation(im1, im2, options):
+    print('REG -- start reg.')
     # Construct grid point and evaluation point structure
     start = time.time()
     if options["dim"] == 2:
