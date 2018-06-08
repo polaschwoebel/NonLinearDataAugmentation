@@ -5,15 +5,13 @@ import pre_processing
 import diffutils as utils
 import time
 
-debug = True
+debug = False
 
 def main():
     start = time.time()
     if not debug:
-        # Martin
-        affine_images_path = 'MICCAI_data/train_ims_aligned_noskull.npy'
-        affine_labels_path = 'MICCAI_data/train_ims_aligned_noskull.npy'
-        # Pola
+        affine_images_path = '../MICCAI_data/noskull/train_ims_aligned_noskull.npy'
+        affine_labels_path = '../MICCAI_data/noskull/train_ims_aligned_noskull.npy'
         affine_images = np.load(affine_images_path)
         affine_labels = np.load(affine_labels_path)
 

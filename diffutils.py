@@ -62,12 +62,13 @@ def apply_trafo_full(im1, alpha, options):
     else:
         points = vector_fields.get_points_3d(im1, 1)
         kernels = vector_fields.get_points_3d(im1, options['kernel_res'])
+        # TODO: filter kernels
         #points = registration.filter_irrelevant_points(points, options['eval_mask'])
-        #kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
+        filtered_kernels = registration.filter_irrelevant_points(points, options['kernel_mask'])
 
     print('integrating')
-    phi= forward_euler.integrate(points, kernels, alpha, options['c_sup'],
-                                 options['dim'], steps=10,
+    phi= forward_euler.integrate(points, filtered_kernels, alpha, options['c_sup'],
+                                 options['dim'], steps=5,
                                  compute_gradient = False)
     print('interpolating')
     return interpolate_image(im1, eng, spline_rep, phi,
